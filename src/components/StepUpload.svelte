@@ -14,6 +14,33 @@
     rejected: []
   };
 
+  // Función para descargar la plantilla CSV
+  function downloadTemplate() {
+    const templateContent = `tabla_nombre,columna_nombre,tipo_dato,es_obligatorio,es_clave_primaria,es_clave_foranea,tabla_referencia,columna_referencia
+usuarios,id,INT,true,true,false,,,
+usuarios,nombre,VARCHAR(100),true,false,false,,,
+usuarios,email,VARCHAR(255),true,false,false,,,
+usuarios,fecha_registro,DATE,false,false,false,,,
+productos,id,INT,true,true,false,,,
+productos,nombre,VARCHAR(200),true,false,false,,,
+productos,precio,DECIMAL(10,2),true,false,false,,,
+productos,categoria_id,INT,false,false,true,categorias,id
+productos,stock,INT,false,false,false,,,
+categorias,id,INT,true,true,false,,,
+categorias,nombre,VARCHAR(100),true,false,false,,,
+categorias,descripcion,TEXT,false,false,false,,,`;
+
+    const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template_normalizacion.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   async function handleFilesSelect(e) {
     const { acceptedFiles, fileRejections } = e.detail;
     files.accepted = [...files.accepted, ...acceptedFiles];
@@ -77,9 +104,21 @@
 <div class="max-w-2xl mx-auto p-6">
   <div class="text-center mb-8">
     <h2 class="text-2xl font-bold mb-4">Sube tu Archivo CSV</h2>
-    <p class="text-gray-600 mb-6">
-      Soporta archivos CSV (.csv) con datos tabulares
-    </p>
+    
+    <!-- Botón para descargar plantilla -->
+    <div class="mb-6">
+      <button 
+        on:click={downloadTemplate}
+        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Descargar Plantilla CSV
+      </button>
+      <p class="text-sm text-gray-500 mt-2">
+        Descarga la plantilla para entender el formato correcto
+      </p>
+    </div>
   </div>
 
   {#if files.accepted.length === 0}

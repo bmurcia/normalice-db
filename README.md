@@ -9,6 +9,7 @@ Normalice DB es una aplicación web moderna que permite a los usuarios subir arc
 ## ✨ Características Principales
 
 - **📁 Subida de Archivos CSV**: Interfaz drag & drop intuitiva
+- **📋 Plantilla CSV Descargable**: Plantilla predefinida para estructurar tu base de datos
 - **🔍 Análisis Automático**: Identificación automática de estructura de datos
 - **📊 Normalización Inteligente**: Aplicación de formas normales (1NF, 2NF, 3NF)
 - **💾 Generación de SQL**: Scripts SQL Server optimizados y formateados
@@ -47,6 +48,9 @@ normalice-db/
 │   ├── pages/              # Páginas y API routes
 │   └── utils/              # Utilidades
 ├── public/                 # Archivos estáticos
+│   └── templates/          # Plantillas descargables
+├── docs/                   # Documentación
+│   └── PLANTILLA_CSV.md   # Guía de la plantilla CSV
 ├── package.json            # Dependencias del proyecto
 └── README.md               # Este archivo
 ```
@@ -61,7 +65,7 @@ normalice-db/
 
 1. **Clonar el repositorio**
 ```bash
-git clone <https://github.com/bmurcia/normalice-db.git>
+git clone https://github.com/bmurcia/normalice-db.git
 cd normalice-db
 ```
 
@@ -82,51 +86,106 @@ http://localhost:4321
 
 ## 📖 Cómo Usar
 
-### **1. Subir Archivo CSV**
+### **1. Descargar Plantilla CSV**
+- Haz clic en **"Descargar Plantilla CSV"** para obtener la plantilla
+- La plantilla incluye ejemplos de estructura de base de datos
+- Consulta `docs/PLANTILLA_CSV.md` para instrucciones detalladas
+
+### **2. Preparar tu Archivo CSV**
+- Usa la plantilla como base
+- Define tus tablas, columnas y relaciones
+- Sigue las convenciones de nomenclatura
+
+### **3. Subir Archivo CSV**
 - Arrastra y suelta tu archivo CSV en el área designada
 - O haz clic para seleccionar el archivo
 - La aplicación acepta archivos `.csv`
 
-### **2. Procesamiento Automático**
+### **4. Procesamiento Automático**
 - El sistema analiza la estructura de tu CSV
 - Identifica columnas y tipos de datos
 - Aplica algoritmos de normalización
 
-### **3. Resultados**
+### **5. Resultados**
 - Visualiza las tablas normalizadas
 - Revisa las relaciones identificadas
 - Descarga el script SQL generado
 
-### **4. Implementación**
+### **6. Implementación**
 - Usa el script SQL en tu SQL Server
 - Ejecuta los comandos CREATE TABLE
 - Tu base de datos estará normalizada
 
 ## 📊 Formato del CSV
 
-### **Estructura Recomendada**
+### **Estructura de la Plantilla**
 ```csv
-id,nombre,email,edad,ciudad,profesion
-1,Juan Pérez,juan@email.com,28,Madrid,Desarrollador
-2,María García,maria@email.com,32,Barcelona,Diseñadora
+tabla_nombre,columna_nombre,tipo_dato,es_obligatorio,es_clave_primaria,es_clave_foranea,tabla_referencia,columna_referencia
+usuarios,id,INT,true,true,false,,,
+usuarios,nombre,VARCHAR(100),true,false,false,,,
+usuarios,email,VARCHAR(255),true,false,false,,,
 ```
 
 ### **Requisitos**
-- **Primera fila**: Nombres de columnas
+- **Primera fila**: Nombres de columnas (según la plantilla)
 - **Separador**: Coma (,)
 - **Encoding**: UTF-8
 - **Formato**: Datos tabulares consistentes
+- **Valores booleanos**: `true` o `false`
 
 ## 🔄 Flujo de Trabajo
 
 ```
-CSV Upload → Análisis → Normalización → Generación SQL → Descarga
-     ↓           ↓           ↓            ↓           ↓
-  Archivo    Estructura   Formas      Script      Implementación
-  CSV       Identificada  Normales    SQL        en SQL Server
+Plantilla CSV → Preparar Datos → CSV Upload → Análisis → Normalización → Generación SQL → Descarga
+      ↓              ↓              ↓           ↓           ↓            ↓           ↓
+  Descargar    Estructurar    Subir      Estructura   Formas      Script      Implementación
+  Plantilla    Base Datos    Archivo    Identificada  Normales    SQL        en SQL Server
 ```
 
+## 🛠️ Scripts Disponibles
 
+```bash
+pnpm run dev      # Modo desarrollo
+pnpm run build    # Construir para producción
+pnpm run preview  # Vista previa de producción
+pnpm run astro    # Comandos de Astro
+```
+
+## 🐛 Solución de Problemas
+
+### **Error: "Cannot resolve module"**
+```bash
+pnpm install
+```
+
+### **Error: Puerto en uso**
+```bash
+# El servidor automáticamente busca puertos disponibles
+# Verifica la consola para el puerto asignado
+```
+
+### **Error: Archivo no se procesa**
+- Verifica que sea un archivo CSV válido
+- Asegúrate de que siga la estructura de la plantilla
+- Revisa la consola del navegador para errores
+
+### **Error: Plantilla no se descarga**
+- Verifica que JavaScript esté habilitado
+- Intenta con un navegador diferente
+- Revisa la consola para errores
+
+## 📚 Documentación Adicional
+
+- **[Plantilla CSV](docs/PLANTILLA_CSV.md)** - Guía completa de la plantilla
+- **[Función handleFilesSelect](FUNCION_HANDLEFILESELECT.md)** - Análisis del código
+
+## 🤝 Contribuir
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
 
 ## 👨‍💻 Autor
 
@@ -140,6 +199,7 @@ CSV Upload → Análisis → Normalización → Generación SQL → Descarga
 - **Svelte** por los componentes reactivos
 - **Tailwind CSS** por el sistema de diseño
 - **Papaparse** por el parsing de CSV
+
 ---
 
 ⭐ **Si este proyecto te ayuda, ¡dale una estrella en GitHub!**
