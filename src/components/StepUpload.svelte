@@ -17,6 +17,7 @@
   // Función para descargar la plantilla CSV
   function downloadTemplate() {
     const templateContent = `EmpleadoID,NombreEmpleado,Departamento,JefeDepartamento,Salario
+INT,VARCHAR(100),VARCHAR(100),VARCHAR(100),DECIMAL(10,2)
 1,Ana,Ventas,Carlos,1200
 2,Luis,Ventas,Carlos,1500
 3,María,Marketing,Lucía,1300
@@ -54,30 +55,51 @@
               setAppStatusError()
               return
             }
-            //extraer los datos 
-            const data = results.data;
-            const columns = results.meta.fields || [];
-
-            // Identificamos las tablas unicas (por ahora asumimos una tabla)
+            
+            // Estructura: Línea 1 = Headers, Línea 2 = Tipos, Líneas 3+ = Datos
+            const columns = results.meta.fields || [];  // Línea 1: nombres de columnas
+            const allData = results.data;               // Líneas 2+ (tipos + datos)
+            
+            // La primera fila de datos (índice 0) contiene los tipos de datos
+            const typesRow = allData[0];
+            
+            // Las filas restantes (índice 1+) contienen los datos reales
+            const realData = allData.slice(1).filter(row => 
+              Object.values(row).some(val => val && val.toString().trim() !== '')
+            );
+            
+            // Mapear cada columna con su tipo de dato
+            const columnTypes = {};
+            columns.forEach(col => {
+              columnTypes[col] = typesRow[col] || 'VARCHAR(255)';
+            });
+            
+            console.log('Columnas detectadas:', columns);
+            console.log('Tipos de datos:', columnTypes);
+            console.log('Datos reales:', realData);
+            
+            // Identificar tablas únicas (por ahora asumimos una tabla)
             const tables = [{
               name: 'tabla_principal',
               columns: columns.map(col => ({
                 name: col,
-                type: 'VARCHAR(255)', // Tipo VARCHAR por defecto
+                type: columnTypes[col] || 'VARCHAR(255)',
                 nullable: true,
                 primaryKey: false,
               }))
             }]
-            //Guardamos los datos en el store
+            
+            // Guardamos los datos en el store
             setFileData({
               fileName: file.name,
               fileType: file.type,
-              rawData: data,
+              rawData: realData,           // Solo los datos reales (sin tipos)
               tables: tables,
               columns: columns,
+              columnTypes: columnTypes,    // Agregar tipos de datos
             });
 
-            //Cambiamos al estado StepAnalyzing
+            // Cambiamos al estado StepAnalyzing
             setAppStatusAnalyzing()
           },
           error: function (error){

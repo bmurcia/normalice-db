@@ -15,7 +15,8 @@ export const fileData = writable({
   fileType: '',
   rawData: '',
   tables: [],
-  columns: []
+  columns: [],
+  columnTypes: {}
 })
 
 export const normalizedData = writable({

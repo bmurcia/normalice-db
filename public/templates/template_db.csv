@@ -1,4 +1,5 @@
 EmpleadoID,NombreEmpleado,Departamento,JefeDepartamento,Salario
+INT,VARCHAR(100),VARCHAR(100),VARCHAR(100),DECIMAL(10,2)
 1,Ana,Ventas,Carlos,1200
 2,Luis,Ventas,Carlos,1500
 3,María,Marketing,Lucía,1300
