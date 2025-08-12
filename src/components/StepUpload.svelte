@@ -15,24 +15,26 @@
   };
 
   // Función para descargar la plantilla CSV
-  function downloadTemplate() {
-    const templateContent = `EmpleadoID,NombreEmpleado,Departamento,JefeDepartamento,Salario
-INT,VARCHAR(100),VARCHAR(100),VARCHAR(100),DECIMAL(10,2)
-1,Ana,Ventas,Carlos,1200
-2,Luis,Ventas,Carlos,1500
-3,María,Marketing,Lucía,1300
-4,Pedro,Marketing,Lucía,1400
-5,Sofía,Ventas,Carlos,1600`;
-
-    const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'template_db.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  async function downloadTemplate() {
+    try {
+      // Leer la plantilla desde el archivo
+      const response = await fetch('/templates/template_db.csv');
+      const templateContent = await response.text();
+      
+      const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'template_db.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error al cargar la plantilla:', error);
+      // Fallback: mostrar mensaje de error al usuario
+      alert('Error al cargar la plantilla. Inténtalo de nuevo.');
+    }
   }
 
   async function handleFilesSelect(e) {
