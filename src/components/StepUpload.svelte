@@ -16,25 +16,18 @@
 
   // Función para descargar la plantilla CSV
   function downloadTemplate() {
-    const templateContent = `tabla_nombre,columna_nombre,tipo_dato,es_obligatorio,es_clave_primaria,es_clave_foranea,tabla_referencia,columna_referencia
-usuarios,id,INT,true,true,false,,,
-usuarios,nombre,VARCHAR(100),true,false,false,,,
-usuarios,email,VARCHAR(255),true,false,false,,,
-usuarios,fecha_registro,DATE,false,false,false,,,
-productos,id,INT,true,true,false,,,
-productos,nombre,VARCHAR(200),true,false,false,,,
-productos,precio,DECIMAL(10,2),true,false,false,,,
-productos,categoria_id,INT,false,false,true,categorias,id
-productos,stock,INT,false,false,false,,,
-categorias,id,INT,true,true,false,,,
-categorias,nombre,VARCHAR(100),true,false,false,,,
-categorias,descripcion,TEXT,false,false,false,,,`;
+    const templateContent = `EmpleadoID,NombreEmpleado,Departamento,JefeDepartamento,Salario
+1,Ana,Ventas,Carlos,1200
+2,Luis,Ventas,Carlos,1500
+3,María,Marketing,Lucía,1300
+4,Pedro,Marketing,Lucía,1400
+5,Sofía,Ventas,Carlos,1600`;
 
     const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'template_normalizacion.csv';
+    a.download = 'template_db.csv';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -116,7 +109,7 @@ categorias,descripcion,TEXT,false,false,false,,,`;
         Descargar Plantilla CSV
       </button>
       <p class="text-sm text-gray-500 mt-2">
-        Descarga la plantilla para entender el formato correcto
+        Descarga la plantilla con datos de ejemplo para entender el formato
       </p>
     </div>
   </div>
