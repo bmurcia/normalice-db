@@ -12,11 +12,11 @@ import App from "../components/App.svelte"
     >
     </div>
   </div>
-  <main class="grid place-content-center min-h-screen w-screen">
-    <h1 class="text-6xl opacity-70 font-bold text-center pb-10">
+  <main class="min-h-screen w-full flex flex-col items-center">
+    <h1 class="text-6xl opacity-70 font-bold text-center py-10">
       Normaliza tu DB
     </h1>
-    <section class="container w-[1000px] max-w-xl h-64">
+    <section class="w-[1000px] max-w-xl">
       <App client:idle />
     </section>
   </main>

@@ -5,6 +5,8 @@
   import StepLoading from "./StepLoading.svelte"
   import StepAnalyzing from "./StepAnalyzing.svelte"
   import StepNormalized from "./StepNormalized.svelte"
+  
+
 </script>
 
 {#if $appStatus === APP_STATUS.INIT}

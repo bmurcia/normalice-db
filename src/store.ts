@@ -21,7 +21,7 @@ export const fileData = writable({
 
 export const normalizedData = writable({
   tables: [],
-  relationsships: [],
+  relationships: [],
   sqlScript: ''
 })
 
