@@ -13,7 +13,7 @@ export * from '../types/normalization';
 // Esta función es la interfaz principal para usar el sistema
 
 import { DatabaseNormalizer } from './normalizer';
-import { NormalizationResult } from '../types/normalization';
+import type { NormalizationResult } from '../types/normalization';
 
 /**
  * Función principal para normalizar cualquier CSV a 3NF
@@ -161,7 +161,7 @@ export function previewCSVStructure(csvData: string): {
   );
   
   // Inferir tipos de columnas basándose en los datos de muestra
-  const columnTypes = headers.map((header, index) => {
+  const columnTypes = headers.map((_header, index) => {
     const sampleValues = sampleRows.map(row => row[index] || '');
     
     // Análisis básico de tipos
@@ -200,10 +200,6 @@ export default {
   normalizeCSVTo3NFSync,
   validateCSV,
   getCSVStats,
-  previewCSVStructure,
-  StructureAnalyzer,
-  EntityDetector,
-  DatabaseNormalizer,
-  SQLGenerator
+  previewCSVStructure
 };
 

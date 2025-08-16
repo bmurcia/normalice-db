@@ -1,12 +1,11 @@
-import { Entity, Column, Relationship } from '../types/normalization';
+import type { Entity, Column, Relationship } from '../types/normalization';
 
-// ===== GENERADOR DE SQL MEJORADO =====
+// ===== GENERADOR DE SQL CORREGIDO Y MEJORADO =====
 
 export class SQLGenerator {
   
   // Generar SQL completo y correcto
   public generateCompleteSQL(entities: Entity[]): string {
-    console.log('⚡ Generando SQL completo para entidades normalizadas...');
     
     let sql = this.generateHeader();
     
@@ -28,24 +27,12 @@ export class SQLGenerator {
     // PASO 6: Crear vistas útiles
     sql += this.generateViews(entities);
     
-    // PASO 7: Notas finales
-    sql += this.generateFooter();
-    
     return sql;
   }
 
   // Generar encabezado del script
   private generateHeader(): string {
-    let sql = `-- ===== SCRIPT DE NORMALIZACIÓN AUTOMÁTICA A 3NF =====\n`;
-    sql += `-- Generado automáticamente por el sistema de normalización inteligente\n`;
-    sql += `-- Fecha: ${new Date().toISOString().split('T')[0]}\n`;
-    sql += `-- Versión: 2.0 - Sistema Inteligente de Detección de Entidades\n\n`;
-    
-    sql += `-- ===== INSTRUCCIONES =====\n`;
-    sql += `-- 1. Ejecutar este script en tu base de datos SQL Server\n`;
-    sql += `-- 2. Verificar que no existan tablas con los mismos nombres\n`;
-    sql += `-- 3. Ajustar los datos de ejemplo según tus necesidades\n`;
-    sql += `-- 4. Revisar los constraints y índices antes de ejecutar\n\n`;
+    let sql = `-- ===== SCRIPT DE NORMALIZACIÓN AUTOMÁTICA =====\n`;
     
     return sql;
   }
@@ -114,7 +101,7 @@ export class SQLGenerator {
       let definition = `    ${column.name} ${column.type}`;
       
       if (column.isPrimaryKey) {
-        definition += ' PRIMARY KEY AUTOINCREMENT';
+        definition += ' IDENTITY(1,1) PRIMARY KEY';
       } else if (column.isRequired) {
         definition += ' NOT NULL';
       }
@@ -250,7 +237,7 @@ export class SQLGenerator {
     if (name.includes('fecha') || name.includes('date')) {
       const constraintName = `chk_${entity.name.toLowerCase()}_${column.name}_valida`;
       constraints += `ALTER TABLE ${entity.name} ADD CONSTRAINT ${constraintName}\n`;
-      constraints += `CHECK (${column.name} IS NOT NULL AND ${column.name} <= GETDATE());\n\n`;
+      constraints += `CHECK (${column.name} IS NOT NULL AND ${column.name} <= CURRENT_TIMESTAMP);\n\n`;
     }
     
     // Constraints para códigos
@@ -517,24 +504,6 @@ export class SQLGenerator {
     return sql;
   }
 
-  // Generar pie de página
-  private generateFooter(): string {
-    let sql = `-- ===== NOTAS IMPORTANTES =====\n`;
-    sql += `-- 1. Este script crea una estructura normalizada a 3NF\n`;
-    sql += `-- 2. Las claves foráneas mantienen la integridad referencial\n`;
-    sql += `-- 3. Los índices mejoran el rendimiento de las consultas\n`;
-    sql += `-- 4. Los constraints validan la calidad de los datos\n`;
-    sql += `-- 5. Los datos de ejemplo son solo para pruebas\n`;
-    sql += `-- 6. Ajusta los datos según tus necesidades reales\n`;
-    sql += `-- 7. Ejecuta este script en tu base de datos SQL Server\n`;
-    sql += `-- 8. Verifica que no existan conflictos de nombres\n\n`;
-    
-    sql += `-- ===== FIN DEL SCRIPT =====\n`;
-    sql += `-- Script generado automáticamente por el sistema de normalización inteligente\n`;
-    sql += `-- Fecha de generación: ${new Date().toISOString()}\n`;
-    
-    return sql;
-  }
 
   // Obtener tipo de entidad
   private getEntityType(entity: Entity): string {

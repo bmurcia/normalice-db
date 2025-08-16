@@ -1,4 +1,4 @@
-import { Table, Entity, Column, EntityType, Relationship, Dependency } from '../types/normalization';
+import type { Table, Entity, Column, EntityType, Relationship, Dependency } from '../types/normalization';
 
 // ===== DETECTOR INTELIGENTE DE ENTIDADES =====
 
@@ -149,7 +149,7 @@ export class EntityDetector {
   }
 
   // Crear entidades basadas en dominios
-  private createEntitiesFromDomains(table: Table, domains: Map<string, Column[]>): void {
+  private createEntitiesFromDomains(_table: Table, domains: Map<string, Column[]>): void {
     domains.forEach((columns, domain) => {
       if (columns.length === 0) return;
       
@@ -212,7 +212,7 @@ export class EntityDetector {
   }
 
   // Generar propósito de entidad
-  private generateEntityPurpose(domain: string, columns: Column[]): string {
+  private generateEntityPurpose(domain: string, _columns: Column[]): string {
     switch (domain) {
       case 'ORDERS': return 'Almacena información de órdenes y pedidos';
       case 'CUSTOMERS': return 'Almacena información de clientes y usuarios';

@@ -1,7 +1,7 @@
 import { StructureAnalyzer } from './analyzer';
 import { EntityDetector } from './entityDetector';
 import { SQLGenerator } from './sqlGenerator';
-import { 
+import type { 
   Table, 
   Entity, 
   NormalizationResult, 
@@ -22,6 +22,7 @@ export class DatabaseNormalizer {
   constructor(csvData: string) {
     this.csvData = csvData;
     this.analyzer = new StructureAnalyzer(csvData);
+    this.entityDetector = new EntityDetector([]);
     this.sqlGenerator = new SQLGenerator();
   }
 
@@ -216,7 +217,7 @@ export class DatabaseNormalizer {
           createdTables.push(newEntityName);
           
           // Mover columnas dependientes a nueva entidad
-          dep.dependent.forEach(colName => {
+          dep.dependent.forEach((colName: string) => {
             const column = entity.columns.find(col => col.name === colName);
             if (column) {
               // Aquí se movería la columna a la nueva entidad
@@ -261,7 +262,7 @@ export class DatabaseNormalizer {
           createdTables.push(newEntityName);
           
           // Mover columnas dependientes a nueva entidad
-          dep.dependent.forEach(colName => {
+          dep.dependent.forEach((colName: string) => {
             const column = entity.columns.find(col => col.name === colName);
             if (column) {
               console.log(`   - Moviendo columna ${colName} a ${newEntityName}`);
@@ -316,11 +317,13 @@ export class DatabaseNormalizer {
       // Verificar si la columna depende solo de parte de la clave primaria
       // (implementación simplificada)
       if (column.name.toLowerCase().includes('nombre') || column.name.toLowerCase().includes('descripcion')) {
-        dependencies.push({
-          determinant: [entity.primaryKey.name],
-          dependent: [column.name],
-          type: 'PARTIAL'
-        });
+        if (entity.primaryKey) {
+          dependencies.push({
+            determinant: [entity.primaryKey.name],
+            dependent: [column.name],
+            type: 'PARTIAL'
+          });
+        }
       }
     });
     
@@ -334,8 +337,8 @@ export class DatabaseNormalizer {
     // Análisis simplificado de dependencias transitivas
     entity.columns.forEach(column1 => {
       entity.columns.forEach(column2 => {
-        if (column1 === column2) return;
-        if (column1 === entity.primaryKey || column2 === entity.primaryKey) return;
+              if (column1 === column2) return;
+      if (entity.primaryKey && (column1 === entity.primaryKey || column2 === entity.primaryKey)) return;
         
         // Verificar dependencias transitivas comunes
         if (this.isTransitiveDependency(column1, column2)) {
@@ -411,7 +414,7 @@ export class DatabaseNormalizer {
   }
 
   // Calcular filas únicas
-  private calculateUniqueRows(entities: Entity[]): number {
+  private calculateUniqueRows(_entities: Entity[]): number {
     // Implementación simplificada
     return this.csvData.split('\n').length - 1;
   }
