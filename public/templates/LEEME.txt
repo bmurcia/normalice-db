@@ -1,3 +1,16 @@
+# PLANTILLA PARA NORMALIZACIÓN DE BASE DE DATOS
+# ================================================
+# FORMATO:
+# Línea 1: Nombres de columnas
+# Línea 2: Tipos de datos SQL
+# Línea 3+: Datos de ejemplo
+# ================================================
+# ================================================
+# NOTA IMPORTANTE SOBRE COMILLAS:
+# En la línea de tipos de datos, tienes que escribir
+# ✅ "DECIMAL(10,2)" (con comillas)
+# ✅ VARCHAR(100)   (sin comillas)
+# ================================================
 num_factura,fecha_factura,id_cliente,nombre_cliente,email_cliente,id_producto,descripcion_producto,cantidad,precio_unitario,subtotal,impuesto,descuento,total
 INT,DATE,INT,VARCHAR(100),VARCHAR(100),INT,VARCHAR(200),INT,"DECIMAL(10,2)","DECIMAL(10,2)","DECIMAL(10,2)","DECIMAL(10,2)","DECIMAL(10,2)"
 F001,2024-01-15,1001,Juan Pérez,juan@email.com,2001,Software Office,2,150.00,300.00,54.00,30.00,324.00

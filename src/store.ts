@@ -8,7 +8,18 @@ export const APP_STATUS = {
   ERROR: -1
 }
 
+// Nuevo sistema de pasos
+export const STEPS = {
+  UPLOAD: 'upload',
+  ANALYZING: 'analyzing',
+  NORMALIZED: 'normalized'
+}
+
 export const appStatus = writable(APP_STATUS.INIT)
+export const currentStep = writable(STEPS.UPLOAD)
+
+// Datos del CSV
+export const csvData = writable<string | null>(null)
 
 export const fileData = writable({
   fileName: '',
@@ -24,6 +35,15 @@ export const normalizedData = writable({
   relationships: [],
   sqlScript: ''
 })
+
+// Funciones para el nuevo sistema
+export const setCurrentStep = (step: string) => {
+  currentStep.set(step)
+}
+
+export const setCSVData = (data: string) => {
+  csvData.set(data)
+}
 
 export const setAppStatusLoading = () => {
   appStatus.set(APP_STATUS.LOADING)

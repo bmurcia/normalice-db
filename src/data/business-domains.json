@@ -1,0 +1,563 @@
+{
+  "version": "1.0.0",
+  "description": "Configuración de dominios de negocio para normalización automática de bases de datos",
+  "domains": {
+    "facturacion": {
+      "name": "Sistema de Facturación/Ventas",
+      "description": "Sistema para gestión de facturas, clientes y ventas",
+      "icon": "🛒",
+      "patterns": {
+        "required": ["factura", "cliente", "email"],
+        "optional": ["total", "impuesto", "subtotal", "fecha", "producto", "cantidad", "precio"]
+      },
+      "entities": ["CLIENTES", "PRODUCTOS", "FACTURAS", "DETALLE_FACTURAS"],
+      "tableStructure": {
+        "CLIENTES": {
+          "purpose": "Información de clientes",
+          "columns": [
+            { "name": "id_cliente", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "email", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "PRODUCTOS": {
+          "purpose": "Catálogo de productos",
+          "columns": [
+            { "name": "id_producto", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "precio", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "FACTURAS": {
+          "purpose": "Cabecera de facturas",
+          "columns": [
+            { "name": "id_factura", "type": "VARCHAR(10)", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "fecha", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "id_cliente", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "subtotal", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "impuesto", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "total", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["CLIENTES"]
+        },
+        "DETALLE_FACTURAS": {
+          "purpose": "Detalle de productos en facturas",
+          "columns": [
+            { "name": "id_detalle", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "id_factura", "type": "VARCHAR(10)", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_producto", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "cantidad", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "precio_unitario", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "subtotal", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["FACTURAS", "PRODUCTOS"]
+        }
+      }
+    },
+    "inventario": {
+      "name": "Sistema de Inventario/Stock",
+      "description": "Sistema para control de inventario, productos y ubicaciones",
+      "icon": "📦",
+      "patterns": {
+        "required": ["stock", "cantidad", "producto"],
+        "optional": ["ubicacion", "categoria", "proveedor", "almacen", "stock_minimo", "stock_actual"]
+      },
+      "entities": ["PRODUCTOS", "CATEGORIAS", "PROVEEDORES", "UBICACIONES", "INVENTARIO"],
+      "tableStructure": {
+        "CATEGORIAS": {
+          "purpose": "Catálogo de categorías de productos",
+          "columns": [
+            { "name": "id_categoria", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "PROVEEDORES": {
+          "purpose": "Catálogo de proveedores",
+          "columns": [
+            { "name": "id_proveedor", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "UBICACIONES": {
+          "purpose": "Catálogo de ubicaciones de almacén",
+          "columns": [
+            { "name": "id_ubicacion", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "PRODUCTOS": {
+          "purpose": "Información principal de productos",
+          "columns": [
+            { "name": "id_producto", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "id_categoria", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_proveedor", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "precio_costo", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "precio_venta", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["CATEGORIAS", "PROVEEDORES"]
+        },
+        "INVENTARIO": {
+          "purpose": "Control de inventario por producto y ubicación",
+          "columns": [
+            { "name": "id_inventario", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "id_producto", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_ubicacion", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "stock_minimo", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "stock_actual", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["PRODUCTOS", "UBICACIONES"]
+        }
+      }
+    },
+    "rrhh": {
+      "name": "Sistema de Recursos Humanos",
+      "description": "Sistema para gestión de empleados, departamentos y cargos",
+      "icon": "👥",
+      "patterns": {
+        "required": ["empleado", "employee", "departamento"],
+        "optional": ["cargo", "fecha_ingreso", "salario", "supervisor", "area", "puesto"]
+      },
+      "entities": ["EMPLEADOS", "DEPARTAMENTOS", "CARGOS"],
+      "tableStructure": {
+        "DEPARTAMENTOS": {
+          "purpose": "Catálogo de departamentos",
+          "columns": [
+            { "name": "id_departamento", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "descripcion", "type": "TEXT", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "CARGOS": {
+          "purpose": "Catálogo de cargos/puestos",
+          "columns": [
+            { "name": "id_cargo", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "nivel", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "EMPLEADOS": {
+          "purpose": "Información de empleados",
+          "columns": [
+            { "name": "id_empleado", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "email", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "id_departamento", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_cargo", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "fecha_ingreso", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "salario", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["DEPARTAMENTOS", "CARGOS"]
+        }
+      }
+    },
+    "ordenes": {
+      "name": "Sistema de Órdenes/Pedidos",
+      "description": "Sistema para gestión de órdenes de trabajo y pedidos",
+      "icon": "📋",
+      "patterns": {
+        "required": ["orden", "order", "pedido"],
+        "optional": ["cliente", "producto", "cantidad", "fecha", "estado", "prioridad"]
+      },
+      "entities": ["CLIENTES", "PRODUCTOS", "ORDENES", "DETALLE_ORDENES"],
+      "tableStructure": {
+        "CLIENTES": {
+          "purpose": "Información de clientes",
+          "columns": [
+            { "name": "id_cliente", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "email", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "PRODUCTOS": {
+          "purpose": "Catálogo de productos",
+          "columns": [
+            { "name": "id_producto", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "precio", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "ORDENES": {
+          "purpose": "Cabecera de órdenes",
+          "columns": [
+            { "name": "id_orden", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "fecha", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "id_cliente", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "estado", "type": "VARCHAR(50)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "prioridad", "type": "VARCHAR(20)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["CLIENTES"]
+        },
+        "DETALLE_ORDENES": {
+          "purpose": "Detalle de productos en órdenes",
+          "columns": [
+            { "name": "id_detalle", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "id_orden", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_producto", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "cantidad", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "precio_unitario", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["ORDENES", "PRODUCTOS"]
+        }
+      }
+    },
+    "contabilidad": {
+      "name": "Sistema de Contabilidad/Finanzas",
+      "description": "Sistema para gestión contable y financiera",
+      "icon": "💰",
+      "patterns": {
+        "required": ["cuenta", "transaccion", "balance", "debito", "credito"],
+        "optional": ["fecha", "monto", "tipo", "categoria", "asiento", "libro"]
+      },
+      "entities": ["CUENTAS", "TRANSACCIONES", "CATEGORIAS_CONTABLES", "ASIENTOS"],
+      "tableStructure": {
+        "CUENTAS": {
+          "purpose": "Plan de cuentas contables",
+          "columns": [
+            { "name": "id_cuenta", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "codigo", "type": "VARCHAR(20)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "tipo", "type": "VARCHAR(50)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "nivel", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "CATEGORIAS_CONTABLES": {
+          "purpose": "Categorías de transacciones",
+          "columns": [
+            { "name": "id_categoria", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "descripcion", "type": "TEXT", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "ASIENTOS": {
+          "purpose": "Cabecera de asientos contables",
+          "columns": [
+            { "name": "id_asiento", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "fecha", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "numero", "type": "VARCHAR(20)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "descripcion", "type": "TEXT", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "total_debito", "type": "DECIMAL(15,2)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "total_credito", "type": "DECIMAL(15,2)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "TRANSACCIONES": {
+          "purpose": "Detalle de transacciones contables",
+          "columns": [
+            { "name": "id_transaccion", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "id_asiento", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_cuenta", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_categoria", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "debito", "type": "DECIMAL(15,2)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "credito", "type": "DECIMAL(15,2)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "descripcion", "type": "TEXT", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["ASIENTOS", "CUENTAS", "CATEGORIAS_CONTABLES"]
+        }
+      }
+    },
+    "crm": {
+      "name": "Sistema CRM (Gestión de Clientes)",
+      "description": "Sistema para gestión de relaciones con clientes",
+      "icon": "👥",
+      "patterns": {
+        "required": ["cliente", "contacto", "oportunidad", "lead"],
+        "optional": ["empresa", "telefono", "estado", "valor", "fecha_contacto", "notas"]
+      },
+      "entities": ["CLIENTES", "EMPRESAS", "OPORTUNIDADES", "ACTIVIDADES", "LEADS"],
+      "tableStructure": {
+        "EMPRESAS": {
+          "purpose": "Información de empresas",
+          "columns": [
+            { "name": "id_empresa", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "industria", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "tamano", "type": "VARCHAR(50)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "CLIENTES": {
+          "purpose": "Información de clientes",
+          "columns": [
+            { "name": "id_cliente", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "email", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "telefono", "type": "VARCHAR(20)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "id_empresa", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "cargo", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["EMPRESAS"]
+        },
+        "LEADS": {
+          "purpose": "Gestión de leads potenciales",
+          "columns": [
+            { "name": "id_lead", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "email", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "empresa", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "estado", "type": "VARCHAR(50)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha_creacion", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "OPORTUNIDADES": {
+          "purpose": "Gestión de oportunidades de venta",
+          "columns": [
+            { "name": "id_oportunidad", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "id_cliente", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "valor", "type": "DECIMAL(15,2)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "estado", "type": "VARCHAR(50)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha_cierre", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["CLIENTES"]
+        },
+        "ACTIVIDADES": {
+          "purpose": "Registro de actividades con clientes",
+          "columns": [
+            { "name": "id_actividad", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "id_cliente", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "tipo", "type": "VARCHAR(50)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "descripcion", "type": "TEXT", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha", "type": "DATETIME", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "duracion", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["CLIENTES"]
+        }
+      }
+    },
+    "proyectos": {
+      "name": "Sistema de Gestión de Proyectos",
+      "description": "Sistema para gestión y seguimiento de proyectos",
+      "icon": "📊",
+      "patterns": {
+        "required": ["proyecto", "tarea", "fase", "responsable"],
+        "optional": ["fecha_inicio", "fecha_fin", "estado", "prioridad", "progreso", "recursos"]
+      },
+      "entities": ["PROYECTOS", "TAREAS", "FASES", "RECURSOS", "ASIGNACIONES"],
+      "tableStructure": {
+        "PROYECTOS": {
+          "purpose": "Información principal de proyectos",
+          "columns": [
+            { "name": "id_proyecto", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "descripcion", "type": "TEXT", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha_inicio", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha_fin_estimada", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "estado", "type": "VARCHAR(50)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "presupuesto", "type": "DECIMAL(15,2)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "FASES": {
+          "purpose": "Fases del proyecto",
+          "columns": [
+            { "name": "id_fase", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "id_proyecto", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "nombre", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "orden", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha_inicio", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha_fin", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["PROYECTOS"]
+        },
+        "TAREAS": {
+          "purpose": "Tareas del proyecto",
+          "columns": [
+            { "name": "id_tarea", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "id_proyecto", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_fase", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "descripcion", "type": "TEXT", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "estado", "type": "VARCHAR(50)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "prioridad", "type": "VARCHAR(20)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha_inicio", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha_fin", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "progreso", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["PROYECTOS", "FASES"]
+        },
+        "RECURSOS": {
+          "purpose": "Recursos disponibles para proyectos",
+          "columns": [
+            { "name": "id_recurso", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "tipo", "type": "VARCHAR(50)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "disponibilidad", "type": "BOOLEAN", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "costo_hora", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "ASIGNACIONES": {
+          "purpose": "Asignación de recursos a tareas",
+          "columns": [
+            { "name": "id_asignacion", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "id_tarea", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_recurso", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "horas_asignadas", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha_asignacion", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["TAREAS", "RECURSOS"]
+        }
+      }
+    },
+    "mantenimiento": {
+      "name": "Sistema de Mantenimiento",
+      "description": "Sistema para gestión de mantenimiento de equipos",
+      "icon": "🔧",
+      "patterns": {
+        "required": ["equipo", "mantenimiento", "reparacion", "falla"],
+        "optional": ["fecha", "tipo", "prioridad", "estado", "tecnico", "costo"]
+      },
+      "entities": ["EQUIPOS", "TIPOS_MANTENIMIENTO", "MANTENIMIENTOS", "FALLAS", "TECNICOS"],
+      "tableStructure": {
+        "EQUIPOS": {
+          "purpose": "Catálogo de equipos",
+          "columns": [
+            { "name": "id_equipo", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "modelo", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "serie", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha_instalacion", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "ubicacion", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "TIPOS_MANTENIMIENTO": {
+          "purpose": "Tipos de mantenimiento",
+          "columns": [
+            { "name": "id_tipo", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "descripcion", "type": "TEXT", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "frecuencia_dias", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "TECNICOS": {
+          "purpose": "Técnicos de mantenimiento",
+          "columns": [
+            { "name": "id_tecnico", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "especialidad", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "telefono", "type": "VARCHAR(20)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "MANTENIMIENTOS": {
+          "purpose": "Registro de mantenimientos",
+          "columns": [
+            { "name": "id_mantenimiento", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "id_equipo", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_tipo", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_tecnico", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "fecha_programada", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha_realizada", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "estado", "type": "VARCHAR(50)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "costo", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "observaciones", "type": "TEXT", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["EQUIPOS", "TIPOS_MANTENIMIENTO", "TECNICOS"]
+        },
+        "FALLAS": {
+          "purpose": "Registro de fallas de equipos",
+          "columns": [
+            { "name": "id_falla", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "id_equipo", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "descripcion", "type": "TEXT", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "fecha_reporte", "type": "DATETIME", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "prioridad", "type": "VARCHAR(20)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "estado", "type": "VARCHAR(50)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["EQUIPOS"]
+        }
+      }
+    },
+    "reservas": {
+      "name": "Sistema de Reservas/Citas",
+      "description": "Sistema para gestión de reservas y citas",
+      "icon": "📅",
+      "patterns": {
+        "required": ["reserva", "cita", "fecha", "hora"],
+        "optional": ["cliente", "servicio", "recurso", "duracion", "estado", "notas"]
+      },
+      "entities": ["CLIENTES", "SERVICIOS", "RECURSOS", "RESERVAS", "HORARIOS"],
+      "tableStructure": {
+        "SERVICIOS": {
+          "purpose": "Catálogo de servicios",
+          "columns": [
+            { "name": "id_servicio", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "descripcion", "type": "TEXT", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "duracion_minutos", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "precio", "type": "DECIMAL(10,2)", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "RECURSOS": {
+          "purpose": "Recursos disponibles para reservas",
+          "columns": [
+            { "name": "id_recurso", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "tipo", "type": "VARCHAR(100)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "capacidad", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "disponible", "type": "BOOLEAN", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": []
+        },
+        "HORARIOS": {
+          "purpose": "Horarios disponibles para reservas",
+          "columns": [
+            { "name": "id_horario", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "id_recurso", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "dia_semana", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "hora_inicio", "type": "TIME", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "hora_fin", "type": "TIME", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["RECURSOS"]
+        },
+        "RESERVAS": {
+          "purpose": "Registro de reservas",
+          "columns": [
+            { "name": "id_reserva", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+            { "name": "id_cliente", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_servicio", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "id_recurso", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": true },
+            { "name": "fecha", "type": "DATE", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "hora_inicio", "type": "TIME", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "duracion_minutos", "type": "INTEGER", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "estado", "type": "VARCHAR(50)", "isPrimaryKey": false, "isForeignKey": false },
+            { "name": "notas", "type": "TEXT", "isPrimaryKey": false, "isForeignKey": false }
+          ],
+          "relationships": ["CLIENTES", "SERVICIOS", "RECURSOS"]
+        }
+      }
+    }
+  },
+  "fallback": {
+    "name": "Sistema Genérico",
+    "description": "Estructura básica para sistemas no identificados",
+    "icon": "⚙️",
+    "entities": ["TABLA_PRINCIPAL"],
+    "tableStructure": {
+      "TABLA_PRINCIPAL": {
+        "purpose": "Tabla principal del sistema",
+        "columns": [
+          { "name": "id", "type": "INTEGER", "isPrimaryKey": true, "isForeignKey": false },
+          { "name": "nombre", "type": "VARCHAR(255)", "isPrimaryKey": false, "isForeignKey": false }
+        ],
+        "relationships": []
+      }
+    }
+  }
+}

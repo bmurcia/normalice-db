@@ -9,7 +9,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'script_normalizacion.sql';
+        a.download = 'script_normalizado.sql';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -31,9 +31,56 @@
 <div class="w-full">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="text-center mb-8">
-            <h2 class="text-3xl font-bold mb-4 text-green-600">✅ Base de Datos Normalizada</h2>
-            <p class="text-gray-600 mb-6 max-w-2xl mx-auto">
-                Tu archivo CSV ha sido analizado y normalizado exitosamente
+            {#if $normalizedData.isAlreadyNormalized}
+                <h2 class="text-3xl font-bold mb-4 text-green-600">🎉 ¡Tabla Ya Normalizada!</h2>
+                <p class="text-gray-600 mb-6 max-w-2xl mx-auto">
+                    Tu tabla ya está bien estructurada y no requiere normalización adicional
+                </p>
+                
+                <!-- Score de normalización -->
+                <div class="inline-flex items-center gap-3 px-6 py-3 bg-green-50 text-green-700 rounded-lg border border-green-200 mb-6">
+                    <span class="text-2xl font-bold">{$normalizedData.normalizationScore}/100</span>
+                    <span class="text-sm">Puntuación de Normalización</span>
+                </div>
+                
+                <!-- Razones de normalización -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 max-w-2xl mx-auto">
+                    <h4 class="font-semibold text-blue-800 mb-3">📊 Análisis de Normalización:</h4>
+                    <ul class="text-sm text-blue-700 space-y-2 text-left">
+                        {#each $normalizedData.normalizationReasons as reason}
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-600">•</span>
+                                <span>{reason}</span>
+                            </li>
+                        {/each}
+                    </ul>
+                </div>
+            {:else}
+                <h2 class="text-3xl font-bold mb-4 text-blue-600">✅ Base de Datos Normalizada</h2>
+                <p class="text-gray-600 mb-6 max-w-2xl mx-auto">
+                    Tu archivo CSV ha sido analizado y normalizado exitosamente
+                </p>
+                
+                <!-- Score de normalización -->
+                <div class="inline-flex items-center gap-3 px-6 py-3 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 mb-6">
+                    <span class="text-2xl font-bold">{$normalizedData.normalizationScore}/100</span>
+                    <span class="text-sm">Puntuación de Normalización</span>
+                </div>
+            {/if}
+        </div>
+
+        <!-- Botón para cargar otro archivo -->
+        <div class="text-center mb-8">
+            <button 
+                on:click={() => window.location.reload()}
+                class="inline-flex items-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                🔄 Cargar Otro Archivo CSV
+            </button>
+            <p class="text-sm text-gray-500 mt-2">
+                Analiza y normaliza otro archivo CSV
             </p>
         </div>
 

@@ -1,30 +1,20 @@
-<script>
+<script lang="ts">
   import { Alert } from "flowbite-svelte"
-  import { APP_STATUS, appStatus } from "../store.ts"
+  import { currentStep, STEPS } from "../store"
   import StepUpload from "./StepUpload.svelte"
-  import StepLoading from "./StepLoading.svelte"
   import StepAnalyzing from "./StepAnalyzing.svelte"
   import StepNormalized from "./StepNormalized.svelte"
-  
-
 </script>
 
-{#if $appStatus === APP_STATUS.INIT}
+{#if $currentStep === STEPS.UPLOAD}
   <StepUpload />
-{:else if $appStatus === APP_STATUS.LOADING}
-  <StepLoading />
-{:else if $appStatus === APP_STATUS.ANALYZING}
+{:else if $currentStep === STEPS.ANALYZING}
   <StepAnalyzing />
-{:else if $appStatus === APP_STATUS.NORMALIZED}
+{:else if $currentStep === STEPS.NORMALIZED}
   <StepNormalized />
-{:else if $appStatus === APP_STATUS.ERROR}
-  <Alert color="red">
-    <span class="font-medium">¡Algo malo ha pasado!</span>
-    Hay un error en la aplicación
-  </Alert>
 {:else}
   <Alert color="yellow">
-    <span class="font-medium">Acción no reconocida</span>
-    Este estado de la aplicación no está reconocido
+    <span class="font-medium">Paso no reconocido</span>
+    Este paso de la aplicación no está reconocido
   </Alert>
 {/if}

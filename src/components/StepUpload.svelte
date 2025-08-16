@@ -1,11 +1,5 @@
-<script>
-  import {
-    setAppStatusLoading,
-    setAppStatusError,
-    setAppStatusAnalyzing,
-    setFileData
-  } from "../store.ts"
-
+<script lang="ts">
+  import { setCurrentStep, setCSVData } from "../store"
   import Dropzone from "svelte-file-dropzone";
   import Papa from "papaparse";
 
@@ -21,93 +15,52 @@
       const response = await fetch('/templates/template_db.csv');
       const templateContent = await response.text();
       
-      const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
+      // Crear blob y descargar
+      const blob = new Blob([templateContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = 'template_db.csv';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error al cargar la plantilla:', error);
-      alert('Error al cargar la plantilla. Inténtalo de nuevo.');
+      console.error('Error al descargar la plantilla:', error);
     }
   }
 
-  async function handleFilesSelect(e) {
+  async function handleFilesSelect(e: any) {
+    console.log('handleFilesSelect llamado con:', e);
     const { acceptedFiles, fileRejections } = e.detail;
+    console.log('Archivos aceptados:', acceptedFiles);
+    console.log('Archivos rechazados:', fileRejections);
+    
     files.accepted = [...files.accepted, ...acceptedFiles];
-    files.rejected = [...files.rejected, ...fileRejections];
+    files.rejected = [...files.rejected, fileRejections];
 
     if (acceptedFiles.length > 0) {
-      setAppStatusLoading()
+      console.log('Iniciando procesamiento del archivo...');
 
       try {
         const file = acceptedFiles[0]
+        console.log('Archivo a procesar:', file.name, file.size);
         const text = await file.text()
+        console.log('Contenido del archivo (primeros 200 chars):', text.substring(0, 200));
 
-        Papa.parse(text, {
-          header: true,
-          complete: function (results){
-            if (results.errors.length > 0) {
-              console.error('Error al parsear el CSV', results.errors);
-              setAppStatusError()
-              return
-            }
-            
-            // Estructura: Línea 1 = Headers, Línea 2 = Tipos, Líneas 3+ = Datos
-            const columns = results.meta.fields || [];  // Línea 1: nombres de columnas
-            const allData = results.data;               // Líneas 2+ (tipos + datos)
-            
-            // La primera fila de datos (índice 0) contiene los tipos de datos
-            const typesRow = allData[0];
-            
-            // Las filas restantes (índice 1+) contienen los datos reales
-            const realData = allData.slice(1).filter(row => 
-              Object.values(row).some(val => val && val.toString().trim() !== '')
-            );
-            
-            // Mapear cada columna con su tipo de dato
-            const columnTypes = {};
-            columns.forEach(col => {
-              columnTypes[col] = typesRow[col] || 'VARCHAR(255)';
-            });
-            
-            // Identificar tablas únicas (por ahora asumimos una tabla)
-            const tables = [{
-              name: 'tabla_principal',
-              columns: columns.map(col => ({
-                name: col,
-                type: columnTypes[col] || 'VARCHAR(255)',
-                nullable: true,
-                primaryKey: false,
-              }))
-            }]
-            
-            // Guardamos los datos en el store
-            setFileData({
-              fileName: file.name,
-              fileType: file.type,
-              rawData: realData,        
-              tables: tables,
-              columns: columns,
-              columnTypes: columnTypes, 
-            });
-
-            // Cambiamos al estado StepAnalyzing
-            setAppStatusAnalyzing()
-          },
-          error: function (error){
-            console.error('Error al parsear el CSV', error);
-            setAppStatusError()
-          }
-        });
+        // Guardar el CSV raw en el store
+        console.log('Guardando CSV en el store...');
+        setCSVData(text);
+        console.log('CSV guardado en el store');
+        
+        // Ir al paso de análisis
+        console.log('Cambiando al paso de análisis...');
+        setCurrentStep('analyzing');
+        console.log('Paso cambiado a analyzing');
 
       } catch (error) {
-        console.error('Error al procesar el archivo',error);
-        setAppStatusError()
+        console.error('Error al procesar el archivo:', error);
+        alert('Error al procesar el archivo. Por favor, verifica que sea un CSV válido.');
       }
     }
   }
@@ -118,7 +71,7 @@
     <div class="text-center mb-8">
       <h2 class="text-3xl font-bold mb-4 text-gray-800">Sube tu Archivo CSV</h2>
     
-      <!-- Botón para descargar plantilla -->
+      <!-- Botón para descargar plantilla CSV -->
       <div class="mb-6">
         <button 
           on:click={downloadTemplate}
@@ -178,15 +131,17 @@
         <h3 class="text-lg font-medium text-red-600 mb-3">Archivos rechazados:</h3>
         <ul class="space-y-2">
           {#each files.rejected as item}
-            <li class="bg-red-50 border border-red-200 rounded-lg p-3">
-              <div class="flex items-center gap-3">
-                <svg class="h-4 w-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                </svg>
-                <span class="text-red-800">{item.file.name}</span>
-                <span class="text-sm text-red-600">({item.errors.join(', ')})</span>
-              </div>
-            </li>
+            {#if item && item.file}
+              <li class="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div class="flex items-center gap-3">
+                  <svg class="h-4 w-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="text-red-800">{item.file.name}</span>
+                  <span class="text-sm text-red-600">({item.errors ? item.errors.join(', ') : 'Error desconocido'})</span>
+                </div>
+              </li>
+            {/if}
           {/each}
         </ul>
       </div>

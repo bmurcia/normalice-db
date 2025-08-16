@@ -1,6 +1,8 @@
-idPelicula,titulo,anoLanzamiento,longitudMinutos,genero,sinopsis,idCompania,nombre,direccion
-INT,VARCHAR(100),INT,INT,VARCHAR(50),VARCHAR(255),INT,VARCHAR(100),VARCHAR(100)
-1,Hulk,2005,128,Terror,Trata de,1,Fox,Ave. 1
-2,Spider,2008,58,Terror,Trata de,2,MTV,Ave. 5
-3,300,2015,1100,Comedia,Trata de,3,Warner Bros,Ave. 8
-4,Sohan,2001,68,Accion,Trata de,3,Warner Bros,Ave. 8
+Id_orden,Fecha,Id_cliente,Nom_cliente,Ciudad,Id_art,Nom_art,Cant,Precio
+INT,DATE,INT,VARCHAR(50),VARCHAR(50),INT,VARCHAR(50),INT,"DECIMAL(5,2)"
+2301,23/02/11,101,Martin,Riobamba,3786,Red,3,35.00
+2301,23/02/11,101,Martin,Riobamba,4011,Raqueta,6,65.00
+2301,23/02/11,101,Martin,Riobamba,9132,Paq-3,8,4.75
+2302,25/02/11,107,Herman,Ambato,5794,Paq-6,4,5.00
+2303,27/02/11,110,Pedro,Quito,4011,Raqueta,2,65.00
+2303,27/02/11,110,Pedro,Quito,3141,Funda,2,10.00

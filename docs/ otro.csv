@@ -1,0 +1,10 @@
+id_producto,nombre_producto,categoria,ubicacion,stock_minimo,stock_actual,proveedor,precio_costo,precio_venta
+INT,VARCHAR(100),VARCHAR(50),VARCHAR(50),INT,INT,VARCHAR(100),"DECIMAL(10,2)","DECIMAL(10,2)"
+1001,Laptop Dell XPS,Electrónicos,Almacén A,5,15,Dell Inc,800.00,1200.00
+1001,Laptop Dell XPS,Electrónicos,Almacén A,5,15,Dell Inc,800.00,1200.00
+1002,Monitor Samsung,Electrónicos,Almacén B,3,8,Samsung,200.00,350.00
+1002,Monitor Samsung,Electrónicos,Almacén B,3,8,Samsung,200.00,350.00
+1003,Teclado Mecánico,Accesorios,Almacén C,10,25,Logitech,50.00,89.99
+1004,Mouse Inalámbrico,Accesorios,Almacén C,10,30,Logitech,25.00,45.00
+1005,Impresora HP,Oficina,Almacén A,2,6,HP Inc,150.00,250.00
+1005,Impresora HP,Oficina,Almacén A,2,6,HP Inc,150.00,250.00

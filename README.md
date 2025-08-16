@@ -124,11 +124,31 @@ tabla_nombre,columna_nombre,tipo_dato,es_obligatorio,es_clave_primaria,es_clave_
 usuarios,id,INT,true,true,false,,,
 usuarios,nombre,VARCHAR(100),true,false,false,,,
 usuarios,email,VARCHAR(255),true,false,false,,,
+usuarios,precio,"DECIMAL(10,2)",true,false,false,,,
 ```
+
+### **⚠️ IMPORTANTE: Escape de Tipos de Datos**
+**Los tipos de datos que contienen comas deben estar entre comillas dobles** para evitar conflictos con el separador CSV:
+
+- ✅ **Correcto**: `"DECIMAL(10,2)"` - Entre comillas dobles
+- ❌ **Incorrecto**: `DECIMAL(10,2)` - Sin comillas (causa error de parsing)
+
+**Tipos que requieren escape:**
+- `"DECIMAL(10,2)"` - Números decimales
+- `"VARCHAR(100)"` - Cadenas de texto con longitud
+- `"CHAR(50)"` - Caracteres de longitud fija
+- `"TEXT"` - Texto largo
+
+**Tipos que NO requieren escape:**
+- `INT` - Números enteros
+- `DATE` - Fechas
+- `BOOLEAN` - Valores booleanos
+- `FLOAT` - Números flotantes
 
 ### **Requisitos**
 - **Primera fila**: Nombres de columnas (según la plantilla)
-- **Separador**: Coma (,)
+- **Separador**: Coma (`,`) - **Estándar CSV**
+- **Escape**: Tipos de datos con comas entre comillas dobles
 - **Encoding**: UTF-8
 - **Formato**: Datos tabulares consistentes
 - **Valores booleanos**: `true` o `false`
