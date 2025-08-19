@@ -1,10 +1,22 @@
 id_producto,nombre_producto,categoria,ubicacion,stock_minimo,stock_actual,proveedor,precio_costo,precio_venta
 INT,VARCHAR(100),VARCHAR(50),VARCHAR(50),INT,INT,VARCHAR(100),"DECIMAL(10,2)","DECIMAL(10,2)"
-1001,Laptop Dell XPS,Electrónicos,Almacén A,5,15,Dell Inc,800.00,1200.00
-1001,Laptop Dell XPS,Electrónicos,Almacén A,5,15,Dell Inc,800.00,1200.00
-1002,Monitor Samsung,Electrónicos,Almacén B,3,8,Samsung,200.00,350.00
-1002,Monitor Samsung,Electrónicos,Almacén B,3,8,Samsung,200.00,350.00
-1003,Teclado Mecánico,Accesorios,Almacén C,10,25,Logitech,50.00,89.99
-1004,Mouse Inalámbrico,Accesorios,Almacén C,10,30,Logitech,25.00,45.00
-1005,Impresora HP,Oficina,Almacén A,2,6,HP Inc,150.00,250.00
-1005,Impresora HP,Oficina,Almacén A,2,6,HP Inc,150.00,250.00
+2001,iPhone 14 Pro,Celulares,Almacén A,8,12,Apple Inc,750.00,999.00
+2002,Tablet iPad Air,Tablets,Almacén B,5,3,Apple Inc,450.00,599.00
+2003,Auriculares Sony WH-1000XM4,Audio,Almacén C,15,22,Sony,280.00,379.99
+2004,Smartphone Samsung Galaxy S23,Celulares,Almacén A,10,18,Samsung,600.00,849.00
+2005,Cámara Canon EOS R5,Fotografía,Almacén D,2,1,Canon,2800.00,3899.00
+2006,Smartwatch Apple Watch Series 8,Wearables,Almacén B,12,8,Apple Inc,320.00,429.00
+2007,Router WiFi 6 ASUS,Networking,Almacén C,6,14,ASUS,85.00,149.99
+2008,Disco Duro SSD Samsung 1TB,Almacenamiento,Almacén A,20,35,Samsung,90.00,139.00
+2009,Webcam Logitech C920,Accesorios,Almacén C,8,4,Logitech,65.00,99.99
+2010,Parlantes JBL Charge 5,Audio,Almacén B,10,16,JBL,120.00,179.99
+2011,Cable USB-C 2m,Cables,Almacén C,50,45,Anker,8.00,15.99
+2012,Power Bank 20000mAh,Accesorios,Almacén B,15,28,Xiaomi,25.00,39.99
+2013,Teclado Gaming Razer,Gaming,Almacén D,7,11,Razer,95.00,149.99
+2014,Mouse Gaming Logitech G502,Gaming,Almacén D,12,19,Logitech,55.00,79.99
+2015,Monitor Curvo LG 27",Monitores,Almacén A,4,2,LG,220.00,329.00
+2016,Procesador Intel i7-12700K,Componentes,Almacén D,3,5,Intel,350.00,449.99
+2017,Tarjeta Gráfica RTX 3070,Componentes,Almacén D,2,1,NVIDIA,450.00,699.00
+2018,Memoria RAM DDR4 16GB,Componentes,Almacén A,15,31,Corsair,65.00,99.99
+2019,Motherboard ASUS B550,Componentes,Almacén D,5,7,ASUS,110.00,159.99
+2020,Fuente de Poder 750W,Componentes,Almacén D,8,12,EVGA,85.00,129.99

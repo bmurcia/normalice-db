@@ -1,8 +1,8 @@
 num_factura,fecha_factura,id_cliente,nombre_cliente,email_cliente,id_producto,descripcion_producto,cantidad,precio_unitario,subtotal,impuesto,descuento,total
 INT,DATE,INT,VARCHAR(100),VARCHAR(100),INT,VARCHAR(200),INT,"DECIMAL(10,2)","DECIMAL(10,2)","DECIMAL(10,2)","DECIMAL(10,2)","DECIMAL(10,2)"
-F001,2024-01-15,1001,Juan Pérez,juan@email.com,2001,Software Office,2,150.00,300.00,54.00,30.00,324.00
-F001,2024-01-15,1001,Juan Pérez,juan@email.com,2002,Licencia Windows,1,200.00,200.00,36.00,20.00,216.00
-F002,2024-01-16,1002,María García,maria@email.com,2003,Antivirus,3,80.00,240.00,43.20,24.00,259.20
-F002,2024-01-16,1002,María García,maria@email.com,2001,Software Office,1,150.00,150.00,27.00,15.00,162.00
-F003,2024-01-17,1003,Carlos López,carlos@email.com,2004,Hardware Servidor,1,500.00,500.00,90.00,50.00,540.00
-F003,2024-01-17,1003,Carlos López,carlos@email.com,2005,Licencia SQL,2,300.00,600.00,108.00,60.00,648.00
+1001,2024-01-15,1001,Juan Pérez,juan@email.com,2001,Software Office,2,150.00,300.00,54.00,30.00,324.00
+1001,2024-01-15,1001,Juan Pérez,juan@email.com,2002,Licencia Windows,1,200.00,200.00,36.00,20.00,216.00
+1002,2024-01-16,1002,María García,maria@email.com,2003,Antivirus,3,80.00,240.00,43.20,24.00,259.20
+1002,2024-01-16,1002,María García,maria@email.com,2001,Software Office,1,150.00,150.00,27.00,15.00,162.00
+1003,2024-01-17,1003,Carlos López,carlos@email.com,2004,Hardware Servidor,1,500.00,500.00,90.00,50.00,540.00
+1003,2024-01-17,1003,Carlos López,carlos@email.com,2005,Licencia SQL,2,300.00,600.00,108.00,60.00,648.00

@@ -27,11 +27,6 @@ export async function normalizeCSVTo3NF(csvData: string): Promise<NormalizationR
     const normalizer = new DatabaseNormalizer(csvData);
     const result = await normalizer.normalizeTo3NF();
     
-    console.log('✅ Normalización completada exitosamente');
-    console.log(`📊 Entidades detectadas: ${result.normalizedEntities.length}`);
-    console.log(`⚡ SQL generado: ${result.sqlScript.length} caracteres`);
-    console.log(`📈 Score de normalización: ${result.analysis.normalizationScore.toFixed(1)}/100`);
-    
     return result;
     
   } catch (error) {
