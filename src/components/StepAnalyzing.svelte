@@ -696,22 +696,157 @@
   }
 
   function designNormalizedTablesFromDomain(headers: string[], primaryKey: string, entities: string[], data: any[]) {
-    console.log('🏗️ Diseñando tablas normalizadas con estructura correcta...');
+    console.log('🏗️ Diseñando tablas normalizadas con estructura inteligente...');
+    console.log('🔄 Dominio detectado:', detectedDomain);
+    console.log('📊 Entidades del dominio:', entities);
     
-    // Detectar si es un sistema de facturación
-    const isFacturacion = headers.some(h => h.toLowerCase().includes('factura')) &&
-                         headers.some(h => h.toLowerCase().includes('cliente')) &&
-                         headers.some(h => h.toLowerCase().includes('producto'));
-    
-    if (isFacturacion) {
-      console.log('📋 Sistema de facturación detectado - Generando estructura correcta');
-      return createFacturacionTables(headers, data);
+    // Usar la estructura del dominio detectado si está disponible
+    if (detectedDomain && detectedDomain.domain !== 'fallback') {
+      console.log('🎯 Usando estructura del dominio:', detectedDomain.domain);
+      
+      // Detectar si es facturación (caso especial ya implementado)
+      if (detectedDomain.domain === 'facturacion') {
+        console.log('📋 Sistema de facturación detectado - Generando estructura correcta');
+        return createFacturacionTables(headers, data);
+      }
+      
+      // Para otros dominios, usar estructura inteligente
+      console.log('🧠 Aplicando normalización inteligente para dominio:', detectedDomain.domain);
+      return createIntelligentTables(headers, data, detectedDomain);
     } else {
       console.log('🔄 Sistema genérico detectado - Usando análisis inteligente');
       return createGenericTables(headers, data, primaryKey);
     }
   }
   
+  // Función para crear tablas con normalización inteligente basada en el dominio
+  function createIntelligentTables(headers: string[], data: any[], domain: any) {
+    console.log('🧠 Creando tablas con normalización inteligente...');
+    console.log('📊 Headers del CSV:', headers);
+    console.log('🏗️ Estructura del dominio:', domain.tableStructure);
+    
+    const tables = [];
+    const domainStructure = domain.tableStructure;
+    
+    // Analizar redundancia en los datos para identificar oportunidades de normalización
+    const redundancyAnalysis = analyzeDataRedundancy(headers, data);
+    console.log('🔍 Análisis de redundancia:', redundancyAnalysis);
+    
+    // Crear tablas según la estructura del dominio
+    for (const [tableName, tableConfig] of Object.entries(domainStructure)) {
+      console.log(`🏗️ Creando tabla: ${tableName}`);
+      
+      const table = {
+        name: tableName,
+        purpose: tableConfig.purpose,
+        columns: [],
+        relationships: []
+      };
+      
+      // Mapear columnas del CSV a la estructura del dominio
+      table.columns = mapColumnsToDomainStructure(headers, tableConfig, redundancyAnalysis, data);
+      
+      // Agregar relaciones según la configuración del dominio
+      if (tableConfig.relationships) {
+        table.relationships = tableConfig.relationships.map((rel: string) => ({
+          column: `id_${rel.toLowerCase().slice(0, -1)}`, // Convertir "CLIENTES" a "id_cliente"
+          references: {
+            table: rel,
+            column: `id_${rel.toLowerCase().slice(0, -1)}`
+          }
+        }));
+      }
+      
+      tables.push(table);
+    }
+    
+    console.log('✅ Tablas creadas con normalización inteligente:', tables);
+    return tables;
+  }
+
+  // Función para analizar redundancia en los datos
+  function analyzeDataRedundancy(headers: string[], data: any[]) {
+    const redundancy = {};
+    
+    headers.forEach(header => {
+      const values = data.map(row => row[header]).filter(v => v !== null && v !== undefined);
+      const uniqueValues = new Set(values);
+      const redundancyPercentage = ((values.length - uniqueValues.size) / values.length) * 100;
+      
+      redundancy[header] = {
+        totalValues: values.length,
+        uniqueValues: uniqueValues.size,
+        redundancyPercentage,
+        shouldNormalize: redundancyPercentage > 20 && uniqueValues.size > 1
+      };
+    });
+    
+    return redundancy;
+  }
+
+  // Función para mapear columnas del CSV a la estructura del dominio
+  function mapColumnsToDomainStructure(headers: string[], tableConfig: any, redundancyAnalysis: any, data: any[]) {
+    const columns = [];
+    
+    // Mapear columnas según la configuración del dominio
+    tableConfig.columns.forEach(domainColumn => {
+      const columnName = domainColumn.name;
+      
+      // Buscar columna correspondiente en el CSV
+      const csvColumn = headers.find(h => h.toLowerCase().includes(columnName.replace('id_', '').replace('_', '')));
+      
+      if (csvColumn) {
+        columns.push({
+          name: columnName,
+          type: detectColumnTypeFromData(csvColumn, data),
+          isPrimaryKey: domainColumn.isPrimaryKey,
+          isForeignKey: domainColumn.isForeignKey,
+          isRequired: domainColumn.isRequired !== false
+        });
+      } else {
+        // Si no se encuentra, usar configuración del dominio
+        columns.push({
+          name: columnName,
+          type: domainColumn.type,
+          isPrimaryKey: domainColumn.isPrimaryKey,
+          isForeignKey: domainColumn.isForeignKey,
+          isRequired: domainColumn.isRequired !== false
+        });
+      }
+    });
+    
+    return columns;
+  }
+
+  // Función para detectar tipo de columna basado en los datos
+  function detectColumnTypeFromData(columnName: string, data: any[]) {
+    const values = data.map(row => row[columnName]).filter(v => v !== null && v !== undefined);
+    
+    if (values.length === 0) return 'VARCHAR(255)';
+    
+    // Detectar tipo basado en el contenido
+    const firstValue = values[0];
+    
+    if (columnName.toLowerCase().includes('id_') || columnName.toLowerCase().includes('_id')) {
+      return 'INT';
+    }
+    
+    if (columnName.toLowerCase().includes('fecha') || columnName.toLowerCase().includes('date')) {
+      return 'DATE';
+    }
+    
+    if (columnName.toLowerCase().includes('precio') || columnName.toLowerCase().includes('costo') || 
+        columnName.toLowerCase().includes('total') || columnName.toLowerCase().includes('stock')) {
+      return 'DECIMAL(10,2)';
+    }
+    
+    if (typeof firstValue === 'number') {
+      return 'INT';
+    }
+    
+    return 'VARCHAR(255)';
+  }
+
   // Función para crear tablas de facturación con estructura correcta
   function createFacturacionTables(headers: string[], data: any[]) {
     const tables = [];
@@ -925,104 +1060,7 @@
     return tables;
   }
 
-  // Función para crear tablas de forma inteligente basándose en los datos
-  function createIntelligentTables(headers: string[], data: any[], primaryKey: string) {
-    console.log('🧠 Creando tablas inteligentes genéricas...');
-    const tables = [];
-    
-    // Analizar dependencias funcionales para identificar entidades
-    const dependencies = analyzeFunctionalDependencies(headers, data);
-    
-    // Identificar columnas que se repiten mucho (candidatas para normalización)
-    const highRedundancyColumns = headers.filter(header => {
-      const values = data.map(row => row[header]);
-      const uniqueValues = new Set(values).size;
-      const redundancyPercentage = ((values.length - uniqueValues) / values.length) * 100;
-      return redundancyPercentage > 30; // Más del 30% de redundancia
-    });
-    
-    // Identificar columnas que podrían ser entidades independientes
-    const potentialEntityColumns = headers.filter(header => {
-      if (header === primaryKey) return false;
-      
-      // Columnas que podrían ser entidades: nombres, categorías, tipos, etc.
-      const isEntityColumn = header.match(/^(nombre|name|tipo|type|categoria|category|departamento|department|cliente|customer|producto|product|proveedor|supplier|almacen|warehouse|ubicacion|location)$/i);
-      
-      if (isEntityColumn) {
-        const values = data.map(row => row[header]);
-        const uniqueValues = new Set(values).size;
-        // Si hay muchos valores únicos, es una entidad
-        return uniqueValues > 1 && uniqueValues < data.length * 0.8;
-      }
-      
-      return false;
-    });
-    
-    // Crear tabla principal con todas las columnas
-    const mainTable = {
-      name: generateTableName(headers, data),
-      purpose: 'Tabla principal del sistema',
-      columns: headers.map(header => ({
-        name: header,
-        type: detectColumnType(data.map(row => row[header]), header),
-        isPrimaryKey: header === primaryKey,
-        isForeignKey: false
-      })),
-      relationships: []
-    };
-    tables.push(mainTable);
-    
-    // Crear tablas de lookup para entidades con alta redundancia
-    const allEntityColumns = [...new Set([...highRedundancyColumns, ...potentialEntityColumns])];
-    
-    allEntityColumns.forEach(column => {
-      if (column !== primaryKey) {
-        const tableName = generateEntityTableName(column);
-        const lookupTable = {
-          name: tableName,
-          purpose: `Tabla de referencia para ${column}`,
-          columns: [
-            {
-              name: generatePrimaryKeyName(column),
-              type: 'INTEGER',
-              isPrimaryKey: true,
-              isForeignKey: false
-            },
-            {
-              name: column,
-              type: detectColumnType(data.map(row => row[column]), column),
-              isPrimaryKey: false,
-              isForeignKey: false
-            }
-          ],
-          relationships: []
-        };
-        tables.push(lookupTable);
-        
-        // Agregar columna FK en tabla principal
-        const fkColumnName = generateForeignKeyName(column);
-        const fkColumn = {
-          name: fkColumnName,
-          type: 'INTEGER',
-          isPrimaryKey: false,
-          isForeignKey: true
-        };
-        mainTable.columns.push(fkColumn);
-        
-        // Agregar relación
-        mainTable.relationships.push({
-          from: mainTable.name,
-          to: tableName,
-          fromColumn: fkColumnName,
-          toColumn: generatePrimaryKeyName(column),
-          type: 'MANY_TO_ONE'
-        });
-      }
-    });
-    
-    console.log(`✅ Se crearon ${tables.length} tablas inteligentes`);
-    return tables;
-  }
+
   
   // Función para generar nombres de tablas genéricos
   function generateTableName(headers: string[], data: any[]): string {
