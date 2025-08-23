@@ -4,7 +4,6 @@
 export { StructureAnalyzer } from './analyzer';
 export { EntityDetector } from './entityDetector';
 export { DatabaseNormalizer } from './normalizer';
-export { SQLGenerator } from './sqlGenerator';
 
 // Exportar tipos
 export * from '../types/normalization';
@@ -21,7 +20,6 @@ import type { NormalizationResult } from '../types/normalization';
  * @returns Promise con el resultado completo de la normalización
  */
 export async function normalizeCSVTo3NF(csvData: string): Promise<NormalizationResult> {
-  console.log('🚀 Iniciando normalización inteligente de CSV a 3NF...');
   
   try {
     const normalizer = new DatabaseNormalizer(csvData);
@@ -41,7 +39,6 @@ export async function normalizeCSVTo3NF(csvData: string): Promise<NormalizationR
  * @returns Resultado de la normalización
  */
 export function normalizeCSVTo3NFSync(csvData: string): NormalizationResult {
-  console.log('⚠️ Usando normalización síncrona (no recomendado para archivos grandes)');
   
   try {
     // Crear una promesa que se resuelve inmediatamente

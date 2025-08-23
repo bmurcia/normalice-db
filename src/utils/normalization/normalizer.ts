@@ -28,7 +28,6 @@ export class DatabaseNormalizer {
 
   // Proceso principal de normalización
   public async normalizeTo3NF(): Promise<NormalizationResult> {
-    console.log('🚀 Iniciando proceso de normalización a 3NF...');
     
     try {
       // PASO 1: Análisis de estructura
@@ -58,11 +57,9 @@ export class DatabaseNormalizer {
         recommendations
       };
       
-      console.log('✅ Normalización completada exitosamente');
       return result;
       
     } catch (error) {
-      console.error('❌ Error durante la normalización:', error);
       throw new Error(`Error en la normalización: ${error}`);
     }
   }
@@ -77,12 +74,6 @@ export class DatabaseNormalizer {
     const tables = this.analyzer.analyzeStructure();
     const analysisResults = this.analyzer.getAnalysisResults();
     
-    console.log(`   - Tablas detectadas: ${tables.length}`);
-    console.log(`   - Total de filas: ${analysisResults.totalRows}`);
-    console.log(`   - Total de columnas: ${analysisResults.totalColumns}`);
-    console.log(`   - Score de redundancia: ${analysisResults.redundancyScore.toFixed(2)}%`);
-    console.log(`   - Nivel de normalización actual: ${analysisResults.normalizationLevel}`);
-    
     return { tables, analysisResults };
   }
 
@@ -91,14 +82,10 @@ export class DatabaseNormalizer {
     entities: Entity[];
     summary: any;
   }> {
-    console.log('🏗️ PASO 2: Detectando entidades y separando dominios...');
     
     this.entityDetector = new EntityDetector(tables);
     const entities = this.entityDetector.detectEntities();
     const summary = this.entityDetector.getDetectionSummary();
-    
-    console.log(`   - Entidades detectadas: ${summary.totalEntities}`);
-    console.log(`   - Score promedio de normalización: ${summary.averageNormalizationScore.toFixed(1)}/100`);
     
     // Mostrar entidades por tipo
     summary.entitiesByType.forEach((count, type) => {

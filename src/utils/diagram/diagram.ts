@@ -87,10 +87,6 @@ export function generateMermaidERDiagram(normalizedTables: NormalizedTable[]): s
     }
   });
   
-  console.log('Generated Mermaid diagram:', diagram);
-  console.log('Normalized tables with relationships:', normalizedTables);
-  console.log('Diagram length:', diagram.length);
-  console.log('First 500 chars:', diagram.substring(0, 500));
   return diagram;
 }
 
