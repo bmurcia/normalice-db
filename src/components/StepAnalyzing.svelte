@@ -1839,7 +1839,7 @@ import TableAnalysisInfo from './TableAnalysisInfo.svelte';
                       {#each analysisResult.initialAnalysis.initialNormalForm.issues as issue}
                         <div class="text-xs text-red-600 flex items-center gap-1">
                           <span>⚠️</span>
-                          <span>{issue}</span>
+                          <span>{typeof issue === 'string' ? issue : issue.message || 'Problema detectado'}</span>
                         </div>
                       {/each}
                     </div>
@@ -1895,7 +1895,7 @@ import TableAnalysisInfo from './TableAnalysisInfo.svelte';
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {#each analysisResult.entities as entity}
               <div class="bg-indigo-50 p-3 sm:p-4 rounded-lg border border-indigo-200">
-                <h3 class="font-semibold text-indigo-800 break-words text-sm">{entity}</h3>
+                <h3 class="font-semibold text-indigo-800 break-words text-sm">{typeof entity === 'string' ? entity : entity.name || entity.toString() || 'Entidad'}</h3>
               </div>
             {/each}
           </div>
