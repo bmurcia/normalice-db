@@ -241,7 +241,7 @@ export function showMermaidDiagram(diagram: string): void {
         diagramContainer.innerHTML = `<div class="mermaid">${diagram}</div>`;
         
         // Inicializar Mermaid en el contenedor
-        const mermaidElement = diagramContainer.querySelector('.mermaid');
+        const mermaidElement = diagramContainer.querySelector('.mermaid') as HTMLElement;
         if (mermaidElement) {
           mermaid.init(undefined, mermaidElement);
         }

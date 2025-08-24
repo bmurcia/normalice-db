@@ -1,4 +1,5 @@
-import type { Table, Entity, Column, EntityType, Relationship, Dependency } from '../types/normalization';
+import type { Table, Entity, Column, Relationship } from '../types/normalization';
+import { EntityType } from '../types/normalization';
 
 // ===== DETECTOR INTELIGENTE DE ENTIDADES =====
 

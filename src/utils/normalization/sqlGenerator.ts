@@ -129,11 +129,14 @@ export class ImprovedSQLGenerator {
             'cliente': 'CLIENTES',
             'producto': 'PRODUCTOS',
             'factura': 'FACTURAS',
+            'num_factura': 'FACTURAS',
             'empleado': 'EMPLEADOS',
             'departamento': 'DEPARTAMENTOS',
             'cargo': 'CARGOS',
             'categoria': 'CATEGORIAS',
-            'proveedor': 'PROVEEDORES'
+            'proveedor': 'PROVEEDORES',
+            'detalle_factura': 'DETALLE_FACTURAS',
+            'detalle_facturas': 'DETALLE_FACTURAS'
           };
           
           const targetTable = tableNameMappings[targetTableName.toLowerCase()] || 

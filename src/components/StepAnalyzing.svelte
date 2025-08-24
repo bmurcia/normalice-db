@@ -3,8 +3,11 @@
   import mermaid from 'mermaid';
   import { csvData, currentStep, setCurrentStep, setOriginalAnalysis, setNormalizationSteps, setFinalAnalysis } from '../store';
   import { detectBusinessDomain } from '../utils/domain-detector';
-  import { ImprovedSQLGenerator, convertEntitiesToSQLTables, downloadSQLScript } from '../utils/normalization/sqlGenerator';
-  import { generateMermaidERDiagram, showMermaidDiagram } from '../utils/diagram/diagram';
+import { ImprovedSQLGenerator, convertEntitiesToSQLTables, downloadSQLScript } from '../utils/normalization/sqlGenerator';
+import { generateMermaidERDiagram, showMermaidDiagram } from '../utils/diagram/diagram';
+import { analyzeCSVStructure, parseCSVWithStructure, performInitialAnalysis, detectColumnType } from '../utils/analysis';
+import CSVDataViewer from './data-display/CSVDataViewer.svelte';
+import TableAnalysisInfo from './TableAnalysisInfo.svelte';
 
   let analysisResult: any = null;
   let isAnalyzing = true;
@@ -12,12 +15,18 @@
   let detectedDomain: any = null;
   let sqlScript: string = '';
   let showSQLPreview: boolean = false;
+  
+  // Variables para mostrar datos originales
+  let originalData: any = null;
+  let showOriginalData: boolean = false; // Cambiado a false por defecto
+  let showTableInfo: boolean = false;
+  let currentPage: number = 1;
+  let rowsPerPage: number = 10;
 
   onMount(() => {
     // Suscribirse a cambios en csvData
     const unsubscribe = csvData.subscribe(data => {
-      if (data) {
-        console.log('CSV data received in StepAnalyzing:', data);
+      if (data && typeof data === 'string') {
         performAnalysis(data);
       }
     });
@@ -27,25 +36,29 @@
 
   function performAnalysis(csvText: string) {
     try {
-      console.log('Starting analysis...');
       isAnalyzing = true;
       error = null;
 
       // PASO 1: ANALIZAR ESTRUCTURA DEL CSV
       const csvStructure = analyzeCSVStructure(csvText);
-      console.log('CSV structure analyzed:', csvStructure);
 
       // PASO 2: PARSEAR CSV CON ESTRUCTURA DETECTADA
       const parsedData = parseCSVWithStructure(csvText, csvStructure);
-      console.log('CSV parsed with structure:', parsedData);
+      
+      // Guardar datos originales para mostrar
+      originalData = {
+        headers: parsedData.headers,
+        data: parsedData.data,
+        totalRows: parsedData.data.length,
+        totalColumns: parsedData.headers.length,
+        structure: csvStructure
+      };
 
       // PASO 3: DETECCIÓN INTELIGENTE DE DOMINIO
       detectedDomain = detectBusinessDomain(parsedData.headers);
-      console.log('🔄 Dominio detectado:', detectedDomain);
 
       // PASO 4: Realizar normalización completa a 3NF
       const normalizationResult = normalizeDatabaseTo3NF(parsedData.data, parsedData.headers);
-      console.log('Normalization completed:', normalizationResult);
 
       // PASO 5: GUARDAR ANÁLISIS ORIGINAL EN EL STORE
       const originalAnalysis = {
@@ -78,7 +91,8 @@
       analysisResult = normalizationResult;
       sqlScript = normalizationResult.sqlScript || '';
       
-
+      // Mostrar información de la tabla después del análisis
+      showTableInfo = true;
       
       isAnalyzing = false;
     } catch (err) {
@@ -88,130 +102,124 @@
     }
   }
 
-  // Función mejorada para analizar la estructura del CSV
-  function analyzeCSVStructure(csvText: string) {
-    const lines = csvText.trim().split('\n');
-    
-    if (lines.length < 2) {
-      throw new Error('El CSV debe tener al menos 2 filas (encabezados y datos)');
+
+
+  // Funciones auxiliares para mostrar datos originales
+  function getCurrentPageData() {
+    if (!originalData || !originalData.data) return [];
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    return originalData.data.slice(startIndex, endIndex);
+  }
+
+  function getTotalPages() {
+    if (!originalData || !originalData.totalRows) return 0;
+    return Math.ceil(originalData.totalRows / rowsPerPage);
+  }
+
+  function changePage(page: number) {
+    if (page >= 1 && page <= getTotalPages()) {
+      currentPage = page;
     }
+  }
 
-    const firstLine = lines[0];
-    const secondLine = lines[1];
-    
-    // Detectar si la primera fila contiene tipos de datos
-    const firstLineHasTypes = detectIfFirstLineHasTypes(firstLine);
-    const secondLineHasTypes = detectIfFirstLineHasTypes(secondLine);
-    
-    let structure = {
-      hasTypeRow: false,
-      typeRowIndex: -1,
-      headerRowIndex: 0,
-      dataStartIndex: 1,
-      originalHeaders: [],
-      detectedTypes: [],
-      cleanHeaders: []
-    };
+  function changeRowsPerPage(newRowsPerPage: number) {
+    rowsPerPage = newRowsPerPage;
+    currentPage = 1; // Reset a primera página
+  }
 
-    if (firstLineHasTypes) {
-      // Primera fila es tipos, segunda es encabezados
-      structure.hasTypeRow = true;
-      structure.typeRowIndex = 0;
-      structure.headerRowIndex = 1;
-      structure.dataStartIndex = 2;
-      structure.originalHeaders = lines[1].split(',').map(h => h.trim().replace(/"/g, ''));
-      structure.detectedTypes = lines[0].split(',').map(t => t.trim().replace(/"/g, ''));
-    } else if (secondLineHasTypes) {
-      // Primera fila es encabezados, segunda es tipos
-      structure.hasTypeRow = true;
-      structure.typeRowIndex = 1;
-      structure.headerRowIndex = 0;
-      structure.dataStartIndex = 2;
-      structure.originalHeaders = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      structure.detectedTypes = lines[1].split(',').map(t => t.trim().replace(/"/g, ''));
+  function formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  function getColumnAnalysis() {
+    if (!originalData || !originalData.headers || !originalData.data) return [];
+    
+    return originalData.headers.map((header: string) => {
+      const values = originalData.data.map((row: any) => row[header]).filter((v: any) => v !== null && v !== undefined);
+      const uniqueValues = new Set(values).size;
+      const redundancyPercentage = ((values.length - uniqueValues) / values.length) * 100;
+      
+      // Detectar tipo de dato basado en el contenido
+      let detectedType = 'VARCHAR(255)';
+      if (values.every((val: any) => !isNaN(Number(val)) && val !== '')) {
+        const hasDecimals = values.some((val: any) => val.toString().includes('.'));
+        detectedType = hasDecimals ? 'DECIMAL(10,2)' : 'INTEGER';
+      } else if (values.every((val: any) => {
+        const date = new Date(val);
+        return !isNaN(date.getTime());
+      })) {
+        detectedType = 'DATE';
+      }
+      
+      return {
+        columnName: header,
+        uniqueValues,
+        totalRows: values.length,
+        redundancyPercentage: Math.round(redundancyPercentage * 100) / 100,
+        detectedType
+      };
+    });
+  }
+
+  function getIssuesFromAnalysis() {
+    if (!originalData || !originalData.headers) return [];
+    
+    const issues = [];
+    const columnAnalysis = getColumnAnalysis();
+    
+    // Verificar alta redundancia
+    const highRedundancy = columnAnalysis.filter((col: any) => col.redundancyPercentage > 30);
+    if (highRedundancy.length > 0) {
+      issues.push(`Alta redundancia detectada en ${highRedundancy.length} columnas`);
+    }
+    
+    // Verificar dependencias transitivas potenciales
+    if (originalData.totalColumns > 5) {
+      issues.push('Múltiples columnas pueden tener dependencias transitivas');
+    }
+    
+    // Verificar si hay columnas que parecen IDs
+    const idColumns = originalData.headers.filter((h: string) => h.toLowerCase().includes('id'));
+    if (idColumns.length === 0) {
+      issues.push('No se detectaron columnas de ID claras');
+    }
+    
+    return issues;
+  }
+
+  function handleAnalyzeRequested() {
+    // Iniciar análisis automáticamente
+    if (csvData) {
+      performAnalysis(csvData);
     } else {
-      // No hay fila de tipos, primera fila es encabezados
-      structure.originalHeaders = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      structure.dataStartIndex = 1;
+      error = 'No hay datos CSV para analizar';
     }
-
-    // Limpiar encabezados (remover caracteres especiales)
-    structure.cleanHeaders = structure.originalHeaders.map(header => 
-      header.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^_+|_+$/g, '')
-    );
-
-    console.log('CSV Structure detected:', structure);
-    return structure;
   }
 
-  // Función para detectar si una línea contiene tipos de datos
-  function detectIfFirstLineHasTypes(line: string): boolean {
-    const types = line.split(',').map(t => t.trim().replace(/"/g, ''));
-    
-    // Patrones comunes de tipos de datos
-    const typePatterns = [
-      /^INT$/i, /^INTEGER$/i, /^BIGINT$/i,
-      /^VARCHAR\(\d+\)$/i, /^CHAR\(\d+\)$/i,
-      /^DECIMAL\(\d+,\d+\)$/i, /^NUMERIC\(\d+,\d+\)$/i,
-      /^FLOAT$/i, /^DOUBLE$/i,
-      /^DATE$/i, /^DATETIME$/i, /^TIMESTAMP$/i,
-      /^BOOLEAN$/i, /^BOOL$/i,
-      /^TEXT$/i, /^LONGTEXT$/i
-    ];
-    
-    // Si más del 50% de las columnas coinciden con patrones de tipos, es una fila de tipos
-    const typeMatches = types.filter(type => 
-      typePatterns.some(pattern => pattern.test(type))
-    ).length;
-    
-    return typeMatches > types.length * 0.5;
+  function handleContinueNormalization() {
+    // Ocultar información de la tabla y mostrar proceso de normalización
+    showTableInfo = false;
+    // Aquí se ejecutaría la normalización completa
   }
 
-  // Función para parsear CSV con la estructura detectada
-  function parseCSVWithStructure(csvText: string, structure: any) {
-    const lines = csvText.trim().split('\n');
-    
-    // Extraer solo las filas de datos
-    const dataLines = lines.slice(structure.dataStartIndex);
-    
-    // Parsear datos manualmente para mayor control
-    const data = dataLines.map((line, index) => {
-      const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-      const row: any = {};
-      
-      structure.cleanHeaders.forEach((header: string, colIndex: number) => {
-        if (values[colIndex] !== undefined) {
-          row[header] = values[colIndex];
-        }
-      });
-      
-      return row;
-    }).filter(row => Object.keys(row).length > 0); // Filtrar filas vacías
 
-    return {
-      headers: structure.cleanHeaders,
-      types: structure.detectedTypes,
-      data: data,
-      structure: structure
-    };
-  }
+
+
 
   function normalizeDatabaseTo3NF(data: any[], headers: string[]) {
-    console.log('Starting 3NF normalization...');
-    
     // PASO 1: ANÁLISIS INICIAL
     const initialAnalysis = performInitialAnalysis(data, headers);
-    console.log('Initial analysis completed:', initialAnalysis);
 
     // PASO 2: ANÁLISIS DE DEPENDENCIAS FUNCIONALES
     const functionalDependencies = analyzeFunctionalDependencies(headers, data);
-    console.log('Functional dependencies:', functionalDependencies);
 
     // PASO 3: IDENTIFICACIÓN DE ENTIDADES (usando detección inteligente)
-    const entities = detectedDomain.entities;
-    console.log('Entities identified by domain detection:', entities);
-    console.log('Detected domain:', detectedDomain);
-    console.log('Entities array length:', entities ? entities.length : 'undefined');
+    const entities = detectedDomain?.entities || [];
 
     // PASO 4: APLICACIÓN DE FORMAS NORMALES
     const normalForms = applyNormalForms(headers, initialAnalysis.primaryKey, functionalDependencies);
@@ -266,45 +274,7 @@
     };
   }
 
-  function performInitialAnalysis(data: any[], headers: string[]) {
-    const totalRows = data.length;
-    const uniqueRows = new Set(data.map(row => JSON.stringify(row))).size;
-    const redundancyPercentage = ((totalRows - uniqueRows) / totalRows) * 100;
 
-    // Detectar clave primaria de forma inteligente
-    let primaryKey = detectIntelligentPrimaryKey(headers, data);
-
-    // Analizar cada columna
-    const columnAnalysis = headers.map(header => {
-      const values = data.map(row => row[header]).filter(v => v !== null && v !== undefined);
-      const uniqueValues = new Set(values).size;
-      const redundancyPercentage = ((values.length - uniqueValues) / values.length) * 100;
-      
-      // Detectar tipo de dato basado en el contenido
-      const detectedType = detectColumnType(values, header);
-      
-      return {
-        columnName: header,
-        uniqueValues,
-        totalRows: values.length,
-        redundancyPercentage,
-        shouldNormalize: redundancyPercentage > 20,
-        detectedType: detectedType
-      };
-    });
-
-    // DETECTAR FORMA NORMAL INICIAL
-    const initialNormalForm = detectInitialNormalForm(data, headers, primaryKey, redundancyPercentage);
-
-    return {
-      primaryKey,
-      totalRows,
-      uniqueRows,
-      redundancyPercentage,
-      columnAnalysis,
-      initialNormalForm
-    };
-  }
 
   // Función para detectar clave primaria de forma inteligente
   function detectIntelligentPrimaryKey(headers: string[], data: any[]): string {
@@ -610,44 +580,7 @@
 
 
 
-  // Función para detectar el tipo de columna basado en los datos
-  function detectColumnType(values: any[], columnName: string): string {
-    if (values.length === 0) return 'VARCHAR(255)';
-    
-    const name = columnName.toLowerCase();
-    
-    // Si el nombre sugiere un tipo específico
-    if (name.includes('id') && name !== 'id') return 'INTEGER';
-    if (name.includes('salario') || name.includes('precio') || name.includes('costo')) return 'DECIMAL(10,2)';
-    if (name.includes('fecha') || name.includes('date')) return 'DATE';
-    if (name.includes('email') || name.includes('correo')) return 'VARCHAR(255)';
-    if (name.includes('telefono') || name.includes('phone')) return 'VARCHAR(20)';
-    if (name.includes('nombre') || name.includes('name')) return 'VARCHAR(100)';
-    
-    // Analizar los valores para determinar el tipo
-    const sampleValues = values.slice(0, 10); // Tomar muestra de 10 valores
-    
-    // Verificar si son números
-    const allNumbers = sampleValues.every(val => !isNaN(Number(val)) && val !== '');
-    if (allNumbers) {
-      const hasDecimals = sampleValues.some(val => val.includes('.'));
-      return hasDecimals ? 'DECIMAL(10,2)' : 'INTEGER';
-    }
-    
-    // Verificar si son fechas
-    const allDates = sampleValues.every(val => {
-      const date = new Date(val);
-      return !isNaN(date.getTime());
-    });
-    if (allDates) return 'DATE';
-    
-    // Verificar longitud para VARCHAR
-    const maxLength = Math.max(...sampleValues.map(val => String(val).length));
-    if (maxLength <= 50) return 'VARCHAR(50)';
-    if (maxLength <= 100) return 'VARCHAR(100)';
-    if (maxLength <= 255) return 'VARCHAR(255)';
-    return 'TEXT';
-  }
+
 
   function analyzeFunctionalDependencies(headers: string[], data: any[]) {
     const dependencies = [];
@@ -724,10 +657,10 @@
   function createIntelligentTables(headers: string[], data: any[], domain: any) {
     console.log('🧠 Creando tablas con normalización inteligente...');
     console.log('📊 Headers del CSV:', headers);
-    console.log('🏗️ Estructura del dominio:', domain.tableStructure);
+    console.log('🏗️ Estructura del dominio:', domain?.tableStructure);
     
     const tables = [];
-    const domainStructure = domain.tableStructure;
+    const domainStructure = domain?.tableStructure || {};
     
     // Analizar redundancia en los datos para identificar oportunidades de normalización
     const redundancyAnalysis = analyzeDataRedundancy(headers, data);
@@ -799,7 +732,7 @@
       if (csvColumn) {
         columns.push({
           name: columnName,
-          type: detectColumnTypeFromData(csvColumn, data),
+          type: detectColumnType(data.map(row => row[csvColumn]), csvColumn),
           isPrimaryKey: domainColumn.isPrimaryKey,
           isForeignKey: domainColumn.isForeignKey,
           isRequired: domainColumn.isRequired !== false
@@ -819,34 +752,7 @@
     return columns;
   }
 
-  // Función para detectar tipo de columna basado en los datos
-  function detectColumnTypeFromData(columnName: string, data: any[]) {
-    const values = data.map(row => row[columnName]).filter(v => v !== null && v !== undefined);
-    
-    if (values.length === 0) return 'VARCHAR(255)';
-    
-    // Detectar tipo basado en el contenido
-    const firstValue = values[0];
-    
-    if (columnName.toLowerCase().includes('id_') || columnName.toLowerCase().includes('_id')) {
-      return 'INT';
-    }
-    
-    if (columnName.toLowerCase().includes('fecha') || columnName.toLowerCase().includes('date')) {
-      return 'DATE';
-    }
-    
-    if (columnName.toLowerCase().includes('precio') || columnName.toLowerCase().includes('costo') || 
-        columnName.toLowerCase().includes('total') || columnName.toLowerCase().includes('stock')) {
-      return 'DECIMAL(10,2)';
-    }
-    
-    if (typeof firstValue === 'number') {
-      return 'INT';
-    }
-    
-    return 'VARCHAR(255)';
-  }
+
 
   // Función para crear tablas de facturación con estructura correcta
   function createFacturacionTables(headers: string[], data: any[]) {
@@ -1645,16 +1551,18 @@
     }
     
     // Issues por columna
-    initialAnalysis.columnAnalysis.forEach((col: any) => {
-      if (col.redundancyPercentage > 30) {
-        issues.push({
-          type: 'COLUMN_REDUNDANCY',
-          severity: 'MEDIUM',
-          description: `Columna "${col.columnName}" tiene ${col.redundancyPercentage.toFixed(1)}% de redundancia`,
-          recommendation: 'Crear tabla de lookup para esta columna'
-        });
-      }
-    });
+    if (initialAnalysis.columnAnalysis && Array.isArray(initialAnalysis.columnAnalysis)) {
+      initialAnalysis.columnAnalysis.forEach((col: any) => {
+        if (col.redundancyPercentage > 30) {
+          issues.push({
+            type: 'COLUMN_REDUNDANCY',
+            severity: 'MEDIUM',
+            description: `Columna "${col.columnName}" tiene ${col.redundancyPercentage.toFixed(1)}% de redundancia`,
+            recommendation: 'Crear tabla de lookup para esta columna'
+          });
+        }
+      });
+    }
     
     return issues;
   }
@@ -1682,12 +1590,12 @@
     });
     
     // Paso 3: Detección de dominio
-    if (detectedDomain) {
+    if (detectedDomain && detectedDomain.name) {
       steps.push({
         step: 3,
         title: 'Detección de Dominio',
         description: `Dominio detectado: ${detectedDomain.name}`,
-        details: `Confianza: ${detectedDomain.confidence}%`,
+        details: `Confianza: ${detectedDomain.confidence || 0}%`,
         status: 'COMPLETED'
       });
     }
@@ -1715,13 +1623,17 @@
 
   // Función para contar relaciones totales
   function countTotalRelationships(tables: any[]) {
+    if (!tables || !Array.isArray(tables)) return 0;
     return tables.reduce((total, table) => {
-      return total + (table.relationships ? table.relationships.length : 0);
+      return total + (table.relationships && Array.isArray(table.relationships) ? table.relationships.length : 0);
     }, 0);
   }
 
   // Función para calcular eliminación de redundancia
   function calculateRedundancyElimination(initialAnalysis: any, normalizedTables: any[]) {
+    if (!initialAnalysis || typeof initialAnalysis.redundancyPercentage !== 'number') {
+      return 0;
+    }
     const originalRedundancy = initialAnalysis.redundancyPercentage;
     const estimatedFinalRedundancy = 5; // Estimación conservadora
     return Math.max(0, originalRedundancy - estimatedFinalRedundancy);
@@ -1768,10 +1680,17 @@
           Ir a Página Principal
         </button>
       </div>
-    {:else if analysisResult}
-      <!-- Resultados del análisis -->
+    {:else if csvData && (!analysisResult || showOriginalData)}
+      <!-- Mostrar datos originales del CSV -->
+      <CSVDataViewer 
+        csvData={csvData} 
+        fileName="data.csv"
+        on:analyzeRequested={handleAnalyzeRequested}
+      />
+    {:else if analysisResult && showTableInfo}
+      <!-- Mostrar información de la tabla a normalizar -->
       <div class="space-y-4 sm:space-y-6">
-        <!-- Botón volver -->
+        <!-- Botones de navegación -->
         <div class="flex justify-start gap-3">
           <button 
             on:click={goToMainPage}
@@ -1782,7 +1701,45 @@
             </svg>
             Ir a Página Principal
           </button>
+
         </div>
+        
+
+        
+        <TableAnalysisInfo 
+          analysisData={originalData}
+          detectedDomain={detectedDomain}
+          on:continueNormalization={handleContinueNormalization}
+        />
+      </div>
+    {:else if analysisResult}
+              <!-- Resultados del análisis -->
+        <div class="space-y-4 sm:space-y-6">
+          <!-- Botones de navegación -->
+          <div class="flex justify-start gap-3">
+            <button 
+              on:click={goToMainPage}
+              class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gray-600 border border-transparent rounded-lg hover:bg-gray-700 focus:ring-4 focus:ring-gray-300 focus:outline-none transition-colors duration-200"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              Ir a Página Principal
+            </button>
+            <button 
+              on:click={() => {
+                showOriginalData = false;
+                showTableInfo = true;
+              }}
+              class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 focus:outline-none transition-colors duration-200"
+              title="Regresar a la vista de información de normalización con datos originales"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Ver Información de Normalización
+            </button>
+          </div>
         
 
         <!-- Dominio detectado -->  
@@ -1944,133 +1901,6 @@
           </div>
         </div>
 
-        <!-- Comparación: Antes vs Después -->
-        <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
-          <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">🔄 Comparación: Antes vs Después</h2>
-          
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- TABLA ORIGINAL -->
-            <div class="border border-red-200 rounded-lg p-4 bg-red-50">
-              <h3 class="text-lg font-semibold text-red-800 mb-3 flex items-center gap-2">
-                <span>📋</span>
-                Tabla Original (CSV)
-              </h3>
-              
-              <!-- Estructura original -->
-              <div class="mb-4">
-                <h4 class="font-medium text-red-700 mb-2 text-sm">Estructura:</h4>
-                <div class="bg-white p-3 rounded border border-red-200">
-                  <div class="text-sm text-red-600 mb-2">
-                    <strong>Filas:</strong> {analysisResult.initialAnalysis.totalRows} | 
-                    <strong>Columnas:</strong> {analysisResult.initialAnalysis.totalColumns}
-                  </div>
-                  <div class="text-xs text-red-500 mb-2">
-                    <strong>Redundancia:</strong> {analysisResult.initialAnalysis.redundancyPercentage.toFixed(1)}%
-                  </div>
-                  <div class="text-xs text-red-600">
-                    <strong>Forma Normal:</strong> {analysisResult.initialAnalysis.initialNormalForm.name}
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Columnas originales -->
-              <div class="mb-4">
-                <h4 class="font-medium text-red-700 mb-2 text-sm">Columnas Originales:</h4>
-                <div class="space-y-2">
-                  {#each analysisResult.initialAnalysis.columnAnalysis as column}
-                    <div class="bg-white p-2 rounded border border-red-200">
-                      <div class="flex justify-between items-center">
-                        <span class="text-sm font-medium text-red-800">{column.columnName}</span>
-                        <span class="text-xs text-red-600">{column.detectedType}</span>
-                      </div>
-                      {#if column.redundancyPercentage > 20}
-                        <div class="text-xs text-red-500 mt-1">
-                          ⚠️ Redundancia: {column.redundancyPercentage.toFixed(1)}%
-                        </div>
-                      {/if}
-                    </div>
-                  {/each}
-                </div>
-              </div>
-              
-              <!-- Problemas identificados -->
-              <div>
-                <h4 class="font-medium text-red-700 mb-2 text-sm">Problemas Identificados:</h4>
-                <div class="space-y-2">
-                  {#if analysisResult.initialAnalysis.redundancyPercentage > 30}
-                    <div class="bg-red-100 p-2 rounded border border-red-300">
-                      <div class="text-sm text-red-800">🚨 Alta redundancia de datos</div>
-                      <div class="text-xs text-red-600">Se repiten valores innecesariamente</div>
-                    </div>
-                  {/if}
-                  {#if analysisResult.initialAnalysis.totalColumns > 10}
-                    <div class="bg-red-100 p-2 rounded border border-red-300">
-                      <div class="text-sm text-red-800">⚠️ Demasiadas columnas</div>
-                      <div class="text-xs text-red-600">Posibles dependencias funcionales</div>
-                    </div>
-                  {/if}
-                </div>
-              </div>
-            </div>
-            
-            <!-- TABLA NORMALIZADA -->
-            <div class="border border-green-200 rounded-lg p-4 bg-green-50">
-              <h3 class="text-lg font-semibold text-green-800 mb-3 flex items-center gap-2">
-                <span>🗄️</span>
-                Base de Datos Normalizada (3NF)
-              </h3>
-              
-              <!-- Estructura normalizada -->
-              <div class="mb-4">
-                <h4 class="font-medium text-green-700 mb-2 text-sm">Estructura:</h4>
-                <div class="bg-white p-3 rounded border border-green-200">
-                  <div class="text-sm text-green-600 mb-2">
-                    <strong>Tablas:</strong> {analysisResult.normalizedTables.length} | 
-                    <strong>Relaciones:</strong> {countTotalRelationships(analysisResult.normalizedTables)}
-                  </div>
-                  <div class="text-xs text-green-500">
-                    <strong>Score 3NF:</strong> {analysisResult.integrityTest.score}%
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Tablas creadas -->
-              <div class="mb-4">
-                <h4 class="font-medium text-green-700 mb-2 text-sm">Tablas Creadas:</h4>
-                <div class="space-y-2">
-                  {#each analysisResult.normalizedTables as table}
-                    <div class="bg-white p-2 rounded border border-green-200">
-                      <div class="flex justify-between items-center">
-                        <span class="text-sm font-medium text-green-800">{table.name}</span>
-                        <span class="text-xs text-green-600">{table.columns.length} cols</span>
-                      </div>
-                      <div class="text-xs text-green-600 mt-1">{table.purpose}</div>
-                    </div>
-                  {/each}
-                </div>
-              </div>
-              
-              <!-- Beneficios obtenidos -->
-              <div>
-                <h4 class="font-medium text-green-700 mb-2 text-sm">Beneficios Obtenidos:</h4>
-                <div class="space-y-2">
-                  <div class="bg-green-100 p-2 rounded border border-green-300">
-                    <div class="text-sm text-green-800">✅ Eliminación de redundancia</div>
-                    <div class="text-xs text-green-600">Datos más eficientes</div>
-                    </div>
-                  <div class="bg-green-100 p-2 rounded border border-green-300">
-                    <div class="text-sm text-green-800">🔗 Relaciones claras</div>
-                    <div class="text-xs text-green-600">Integridad referencial</div>
-                  </div>
-                  <div class="bg-green-100 p-2 rounded border border-green-300">
-                    <div class="text-sm text-green-800">📊 Mejor rendimiento</div>
-                    <div class="text-xs text-green-600">Consultas optimizadas</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
         <!-- Tablas normalizadas -->
         <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
           <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">🗄️ Tablas Normalizadas Resultantes</h2>

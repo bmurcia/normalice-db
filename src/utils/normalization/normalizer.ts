@@ -1,15 +1,15 @@
 import { StructureAnalyzer } from './analyzer';
 import { EntityDetector } from './entityDetector';
-import { SQLGenerator } from './sqlGenerator';
+import { ImprovedSQLGenerator } from './sqlGenerator';
 import type { 
   Table, 
   Entity, 
   NormalizationResult, 
   NormalizationStep, 
   AnalysisResult, 
-  Issue,
-  NormalizationLevel 
+  Issue
 } from '../types/normalization';
+// import { NormalizationLevel } from '../types/normalization';
 
 // ===== NORMALIZADOR PRINCIPAL =====
 
@@ -17,13 +17,13 @@ export class DatabaseNormalizer {
   private csvData: string;
   private analyzer: StructureAnalyzer;
   private entityDetector: EntityDetector;
-  private sqlGenerator: SQLGenerator;
+  private sqlGenerator: ImprovedSQLGenerator;
 
   constructor(csvData: string) {
     this.csvData = csvData;
     this.analyzer = new StructureAnalyzer(csvData);
     this.entityDetector = new EntityDetector([]);
-    this.sqlGenerator = new SQLGenerator();
+    this.sqlGenerator = new ImprovedSQLGenerator();
   }
 
   // Proceso principal de normalización
@@ -358,7 +358,28 @@ export class DatabaseNormalizer {
   private async generateSQLScript(entities: Entity[]): Promise<string> {
     console.log('⚡ PASO 4: Generando script SQL normalizado...');
     
-    const sqlScript = this.sqlGenerator.generateCompleteSQL(entities);
+    // Convertir entidades a SQLTables
+    const sqlTables = entities.map(entity => ({
+      name: entity.name,
+      columns: entity.columns.map(col => ({
+        name: col.name,
+        type: col.type,
+        isPrimaryKey: col.isPrimaryKey,
+        isForeignKey: col.isForeignKey,
+        isRequired: true,
+        reference: col.reference ? `${col.reference.table}.${col.reference.column}` : undefined
+      })),
+      relationships: entity.relationships.map(rel => ({
+        from: entity.name,
+        to: rel.references?.table || '',
+        fromColumn: rel.column || '',
+        toColumn: rel.references?.column || '',
+        type: 'ONE_TO_MANY' as const
+      })),
+      purpose: entity.purpose
+    }));
+    
+    const sqlScript = this.sqlGenerator.generateSQL(sqlTables);
     
     console.log(`   - Script SQL generado: ${sqlScript.length} caracteres`);
     

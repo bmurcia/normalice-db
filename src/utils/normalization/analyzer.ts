@@ -1,4 +1,4 @@
-import type { Column, Table, FunctionalDependency, RedundancyPattern } from '../types/normalization';
+import type { Column, Table, FunctionalDependency } from '../types/normalization';
 import { EntityType, NormalizationLevel } from '../types/normalization';
 
 // ===== ANALIZADOR INTELIGENTE DE ESTRUCTURA =====

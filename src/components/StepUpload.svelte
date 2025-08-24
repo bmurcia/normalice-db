@@ -36,8 +36,9 @@
     console.log('Archivos aceptados:', acceptedFiles);
     console.log('Archivos rechazados:', fileRejections);
     
-    files.accepted = [...files.accepted, ...acceptedFiles];
-    files.rejected = [...files.rejected, fileRejections];
+    // Limpiar archivos anteriores y agregar los nuevos
+    files.accepted = [...acceptedFiles];
+    files.rejected = [...fileRejections];
 
     if (acceptedFiles.length > 0) {
       console.log('Iniciando procesamiento del archivo...');
@@ -49,14 +50,17 @@
         console.log('Contenido del archivo (primeros 200 chars):', text.substring(0, 200));
 
         // Guardar el CSV raw en el store
-        console.log('Guardando CSV en el store...');
+        console.log('💾 Guardando CSV en el store...');
+        console.log('📄 Contenido del CSV (primeros 200 chars):', text.substring(0, 200));
+        console.log('📊 Longitud del CSV:', text.length);
+        
         setCSVData(text);
-        console.log('CSV guardado en el store');
+        console.log('✅ CSV guardado en el store');
         
         // Ir al paso de análisis
-        console.log('Cambiando al paso de análisis...');
+        console.log('🔄 Cambiando al paso de análisis...');
         setCurrentStep('analyzing');
-        console.log('Paso cambiado a analyzing');
+        console.log('✅ Paso cambiado a analyzing');
 
       } catch (error) {
         console.error('Error al procesar el archivo:', error);
@@ -131,17 +135,15 @@
         <h3 class="text-lg font-medium text-red-600 mb-3">Archivos rechazados:</h3>
         <ul class="space-y-2">
           {#each files.rejected as item}
-            {#if item && item.file}
-              <li class="bg-red-50 border border-red-200 rounded-lg p-3">
-                <div class="flex items-center gap-3">
-                  <svg class="h-4 w-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                  </svg>
-                  <span class="text-red-800">{item.file.name}</span>
-                  <span class="text-sm text-red-600">({item.errors ? item.errors.join(', ') : 'Error desconocido'})</span>
-                </div>
-              </li>
-            {/if}
+            <li class="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div class="flex items-center gap-3">
+                <svg class="h-4 w-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+                <span class="text-red-800">{item.file ? item.file.name : 'Archivo desconocido'}</span>
+                <span class="text-sm text-red-600">({item.errors && Array.isArray(item.errors) ? item.errors.join(', ') : 'Error desconocido'})</span>
+              </div>
+            </li>
           {/each}
         </ul>
       </div>

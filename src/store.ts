@@ -63,7 +63,7 @@ export const setOriginalAnalysis = (analysis: any) => {
 }
 
 export const setNormalizationSteps = (steps: any[]) => {
-  normalizedData.update(current => ({
+  normalizedData.update((current: any) => ({
     ...current,
     normalizationSteps: steps
   }))
